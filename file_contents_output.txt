@@ -1,0 +1,612 @@
+
+==> config/asgi.py <==
+"""
+ASGI config for authservice project.
+
+It exposes the ASGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
+"""
+
+import os
+
+from django.core.asgi import get_asgi_application
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+application = get_asgi_application()
+
+
+==> config/__init__.py <==
+
+==> config/schema.py <==
+# import graphene
+#
+#
+# class Query(graphene.ObjectType):
+#     health = graphene.String()
+#
+#     def resolve_health(self, info):
+#         return "Auth Service is running!"
+#
+#
+# schema = graphene.Schema(query=Query)
+
+==> config/settings/base.py <==
+
+==> config/settings/development.py <==
+
+==> config/settings/__init__.py <==
+
+==> config/settings/production.py <==
+
+==> config/settings.py <==
+# config/settings.py
+from pathlib import Path
+from decouple import config, Csv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Security
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
+
+# Application definition
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Third party
+    "graphene_django",
+    # Local apps - Las crearemos paso a paso
+    # 'src.feature.users.infrastructure.web',
+    # 'src.feature.authentication.infrastructure.web',
+]
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "config.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "config.wsgi.application"
+
+# Database
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("DB_NAME"),
+        "USER": config("DB_USER"),
+        "PASSWORD": config("DB_PASSWORD"),
+        "HOST": config("DB_HOST"),
+        "PORT": config("DB_PORT"),
+    }
+}
+
+# Internationalization
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+
+# Static files
+STATIC_URL = "static/"
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# GraphQL
+GRAPHENE = {"SCHEMA": "config.schema.schema"}
+
+
+# JWT Settings bM-CM-!sicos
+
+JWT_SECRET_KEY = config("JWT_SECRET_KEY")
+JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast=int)
+JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
+
+
+==> config/settings/testing.py <==
+
+==> config/urls.py <==
+"""
+URL configuration for authservice project.
+"""
+
+from django.contrib import admin
+from django.urls import path
+from graphene_django.views import GraphQLView
+
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path("graphql/", GraphQLView.as_view(graphiql=True)),
+]
+
+
+==> config/wsgi.py <==
+"""
+WSGI config for authservice project.
+
+It exposes the WSGI callable as a module-level variable named ``application``.
+
+For more information on this file, see
+https://docs.djangoproject.com/en/5.2/howto/deployment/wsgi/
+"""
+
+import os
+
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
+application = get_wsgi_application()
+
+
+==> manage.py <==
+#!/usr/bin/env python
+"""Django's command-line utility for administrative tasks."""
+import os
+import sys
+
+
+def main():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'authservice.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
+if __name__ == '__main__':
+    main()
+
+==> src/core/application/dto/base_dto.py <==
+
+==> src/core/application/dto/__init__ .py <==
+
+==> src/core/application/dto/pagination.py <==
+
+==> src/core/application/__init__ .py <==
+
+==> src/core/application/interfaces/base_use_case.py <==
+
+==> src/core/application/interfaces/__init__ .py <==
+
+==> src/core/domain/entities/base_entity.py <==
+
+==> src/core/domain/entities/__init__ .py <==
+
+==> src/core/domain/__init.py <==
+
+==> src/core/domain/repositories/base_repository.py <==
+
+==> src/core/domain/repositories/criteria/base_criteria.py <==
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
+from django.db.models import QuerySet
+
+
+class BaseCriteria(ABC):
+    """Criterio base para bM-CM-:squedas"""
+
+    @abstractmethod
+    def apply(self, queryset: QuerySet) -> QuerySet:
+        """Aplicar criterio al queryset"""
+        pass
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializar criterio para caching/debugging"""
+        pass
+
+
+class CriteriaBuilder:
+    """Builder para combinar mM-CM-:ltiples criterios"""
+
+    def __init__(self):
+        self._criteria: List[BaseCriteria] = []
+
+    def add(self, criteria: BaseCriteria) -> "CriteriaBuilder":
+        self._criteria.append(criteria)
+        return self
+
+    def build(self) -> List[BaseCriteria]:
+        return self._criteria.copy()
+
+    def apply_all(self, queryset: QuerySet) -> QuerySet:
+        for criteria in self._criteria:
+            queryset = criteria.apply(queryset)
+        return queryset
+
+==> src/core/domain/repositories/criteria/date_range_criteria.py <==
+from datetime import datetime
+from typing import Optional
+from django.db.models import QuerySet
+from .base_criteria import BaseCriteria
+
+
+class DateRangeCriteria(BaseCriteria):
+    def __init__(
+        self,
+        field_name: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ):
+        self.field_name = field_name
+        self.start_date = start_date
+        self.end_date = end_date
+
+    def apply(self, queryset: QuerySet) -> QuerySet:
+        filters = {}
+
+        if self.start_date:
+            filters[f"{self.field_name}__gte"] = self.start_date
+
+        if self.end_date:
+            filters[f"{self.field_name}__lte"] = self.end_date
+
+        return queryset.filter(**filters) if filters else queryset
+
+    def to_dict(self) -> dict:
+        return {
+            "type": "date_range",
+            "field": self.field_name,
+            "start_date": self.start_date.isoformat() if self.start_date else None,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
+        }
+
+==> src/core/domain/repositories/criteria/__init__ .py <==
+
+==> src/core/domain/repositories/criteria/pagination_criteria.py <==
+
+==> src/core/domain/repositories/criteria/status_criteria.py <==
+
+==> src/core/domain/repositories/criteria/text_search_criteria.py <==
+
+==> src/core/domain/repositories/__init__ .py <==
+
+==> src/core/domain/value_objects/base_vo.py <==
+
+==> src/core/domain/value_objects/email.py <==
+
+==> src/core/domain/value_objects/__init__ .py <==
+
+==> src/core/domain/value_objects/pagination.py <==
+
+==> src/core/exceptions/auth_exceptions.py <==
+
+==> src/core/exceptions/base_exceptions.py <==
+
+==> src/core/exceptions/__init__ .py <==
+
+==> src/core/exceptions/validation_exceptions.py <==
+
+==> src/core/infrastructure/database/__init__ .py <==
+
+==> src/core/infrastructure/database/mixins.py <==
+
+==> src/core/infrastructure/database/models.py <==
+
+==> src/core/infrastructure/database/repositories.py <==
+
+==> src/core/infrastructure/__init__ .py <==
+
+==> src/core/infrastructure/middleware/auth_middleware.py <==
+
+==> src/core/infrastructure/middleware/cors_middleware.py <==
+
+==> src/core/infrastructure/middleware/__init__ .py <==
+
+==> src/core/infrastructure/web/graphql/__init__ .py <==
+
+==> src/core/infrastructure/web/graphql/inputs.py <==
+
+==> src/core/infrastructure/web/graphql/permossions.py <==
+
+==> src/core/infrastructure/web/graphql/scalars.py <==
+
+==> src/core/infrastructure/web/graphql/type.py <==
+
+==> src/core/infrastructure/web/__init__ .py <==
+
+==> src/core/__init__.py <==
+
+==> src/core/utils/constants.py <==
+
+==> src/core/utils/formatters.py <==
+
+==> src/core/utils/__init__ .py <==
+
+==> src/core/utils/validators.py <==
+
+==> src/feature/authentication/application/dto/auth_dto.py <==
+
+==> src/feature/authentication/application/dto/__init__ .py <==
+
+==> src/feature/authentication/application/__init__ .py <==
+
+==> src/feature/authentication/application/interfaces/__init__ .py <==
+
+==> src/feature/authentication/application/interfaces/session_service.py <==
+
+==> src/feature/authentication/application/interfaces/user_services.py <==
+
+==> src/feature/authentication/application/use_cases/__init__ .py <==
+
+==> src/feature/authentication/application/use_cases/login_user.py <==
+
+==> src/feature/authentication/application/use_cases/logout_user.py <==
+
+==> src/feature/authentication/application/use_cases/refresh_token.py <==
+
+==> src/feature/authentication/application/use_cases/register_user.py <==
+
+==> src/feature/authentication/domain/entities/auth_result.py <==
+
+==> src/feature/authentication/domain/entities/__init__ .py <==
+
+==> src/feature/authentication/domain/exceptions/auth_exceptions.py <==
+
+==> src/feature/authentication/domain/exceptions/__init__ .py <==
+
+==> src/feature/authentication/domain/__init__ .py <==
+
+==> src/feature/authentication/domain/services/auth_strategy.py <==
+
+==> src/feature/authentication/domain/services/__init__ .py <==
+
+==> src/feature/authentication/infrastructure/__init__ .py <==
+
+==> src/feature/authentication/infrastructure/strategies/email_password_strategy.py <==
+
+==> src/feature/authentication/infrastructure/strategies/__init__ .py <==
+
+==> src/feature/authentication/infrastructure/strategies/magic_ling_strategy.py <==
+
+==> src/feature/authentication/infrastructure/strategies/oauth_strategy.py <==
+
+==> src/feature/authentication/infrastructure/web/apps.py <==
+
+==> src/feature/authentication/infrastructure/web/graphql/__init__ .py <==
+
+==> src/feature/authentication/infrastructure/web/graphql/inputs.py <==
+
+==> src/feature/authentication/infrastructure/web/graphql/mutations.py <==
+
+==> src/feature/authentication/infrastructure/web/graphql/schema.py <==
+
+==> src/feature/authentication/infrastructure/web/graphql/types.py <==
+
+==> src/feature/authentication/infrastructure/web/__init__ .py <==
+
+==> src/feature/authentication/__init__ .py <==
+
+==> src/feature/authentication/test/__init__ .py <==
+
+==> src/feature/sessions/application/dto/__init__ .py <==
+
+==> src/feature/sessions/application/dto/session_dto.py <==
+
+==> src/feature/sessions/application/__init__ .py <==
+
+==> src/feature/sessions/application/interfaces/__init__ .py <==
+
+==> src/feature/sessions/application/interfaces/session_provider.py <==
+
+==> src/feature/sessions/application/use_cases/create_session.py <==
+
+==> src/feature/sessions/application/use_cases/get_user_sessions.py <==
+
+==> src/feature/sessions/application/use_cases/__init__ .py <==
+
+==> src/feature/sessions/application/use_cases/refresh_session.py <==
+
+==> src/feature/sessions/application/use_cases/revoke_all_sessions.py <==
+
+==> src/feature/sessions/application/use_cases/revoke_session.py <==
+
+==> src/feature/sessions/domain/entities/__init__ .py <==
+
+==> src/feature/sessions/domain/entities/session.py <==
+
+==> src/feature/sessions/domain/exceptions/__init__ .py <==
+
+==> src/feature/sessions/domain/exceptions/session_exceptions.py <==
+
+==> src/feature/sessions/domain/__init__ .py <==
+
+==> src/feature/sessions/domain/repositories/__init__ .py <==
+
+==> src/feature/sessions/domain/repositories/session_repository.py <==
+
+==> src/feature/sessions/domain/services/__init__ .py <==
+
+==> src/feature/sessions/domain/services/token_service.py <==
+
+==> src/feature/sessions/domain/value_objects/device_info.py <==
+
+==> src/feature/sessions/domain/value_objects/__init__ .py <==
+
+==> src/feature/sessions/domain/value_objects/refresh_token.py <==
+
+==> src/feature/sessions/infrastructure/database/admin.py <==
+
+==> src/feature/sessions/infrastructure/database/__init__ .py <==
+
+==> src/feature/sessions/infrastructure/database/models.py <==
+
+==> src/feature/sessions/infrastructure/database/repositories.py <==
+
+==> src/feature/sessions/infrastructure/external_sevices/__init__ .py <==
+
+==> src/feature/sessions/infrastructure/external_sevices/jwt_service.py <==
+
+==> src/feature/sessions/infrastructure/__init__ .py <==
+
+==> src/feature/sessions/infrastructure/web/apps.py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/__init__ .py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/inputs.py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/mutations.py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/queries.py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/schema.py <==
+
+==> src/feature/sessions/infrastructure/web/graphql/types.py <==
+
+==> src/feature/sessions/infrastructure/web/__init__ .py <==
+
+==> src/feature/sessions/__init__ .py <==
+
+==> src/feature/sessions/test/__init__ .py <==
+
+==> src/feature/users/application/dto/__init__ .py <==
+
+==> src/feature/users/application/dto/user_dto.py <==
+
+==> src/feature/users/application/__init__ .py <==
+
+==> src/feature/users/application/interfaces/__init__ .py <==
+
+==> src/feature/users/application/interfaces/user_provider.py <==
+
+==> src/feature/users/application/use_cases/create_user.py <==
+
+==> src/feature/users/application/use_cases/deactivate_user.py <==
+
+==> src/feature/users/application/use_cases/get_user.py <==
+
+==> src/feature/users/application/use_cases/__init__ .py <==
+
+==> src/feature/users/application/use_cases/search_users.py <==
+
+==> src/feature/users/application/use_cases/update_user.py <==
+
+==> src/feature/users/domain/entities/__init__ .py <==
+
+==> src/feature/users/domain/entities/user.py <==
+
+==> src/feature/users/domain/exceptions/__init__ .py <==
+
+==> src/feature/users/domain/exceptions/user_exceptions.py <==
+
+==> src/feature/users/domain/__init__ .py <==
+
+==> src/feature/users/domain/repositories/__init__ .py <==
+
+==> src/feature/users/domain/repositories/user_repository.py <==
+
+==> src/feature/users/domain/services/__init__ .py <==
+
+==> src/feature/users/domain/services/password_service.py <==
+
+==> src/feature/users/domain/value_objects/__init__ .py <==
+
+==> src/feature/users/domain/value_objects/password.py <==
+
+==> src/feature/users/domain/value_objects/user_status.py <==
+
+==> src/feature/users/infrastructure/database/admin.py <==
+
+==> src/feature/users/infrastructure/database/__init__ .py <==
+
+==> src/feature/users/infrastructure/database/models.py <==
+
+==> src/feature/users/infrastructure/database/repositories.py <==
+
+==> src/feature/users/infrastructure/__init__ .py <==
+
+==> src/feature/users/infrastructure/web/apps.py <==
+
+==> src/feature/users/infrastructure/web/graphql/__init__ .py <==
+
+==> src/feature/users/infrastructure/web/graphql/inputs.py <==
+
+==> src/feature/users/infrastructure/web/graphql/mutations.py <==
+
+==> src/feature/users/infrastructure/web/graphql/queries.py <==
+
+==> src/feature/users/infrastructure/web/graphql/schema.py <==
+
+==> src/feature/users/infrastructure/web/graphql/types.py <==
+
+==> src/feature/users/infrastructure/web/__init__ .py <==
+
+==> src/feature/users/__init__ .py <==
+
+==> src/feature/users/test/__init__ .py <==
+
+==> src/services/datetime/data_formatter.py <==
+
+==> src/services/datetime/__init__ .py <==
+
+==> src/services/datetime/timezone_service.py <==
+
+==> src/services/external/__init__ .py <==
+
+==> src/services/external/oauth_providers/facebook_oauth.py <==
+
+==> src/services/external/oauth_providers/google_oauth.py <==
+
+==> src/services/external/oauth_providers/__init__ .py <==
+
+==> src/services/__init__ .py <==
+
+==> src/services/notification/email_service.py <==
+
+==> src/services/notification/__init__ .py <==
+
+==> src/services/notification/push_service.py <==
+
+==> src/services/security/audit_service.py <==
+
+==> src/services/security/encryption_service.py <==
+
+==> src/services/security/__init__ .py <==
+
+==> src/services/security/rate_limiter.py <==
+
+==> src/services/websockets/connection_manager.py <==
+
+==> src/services/websockets/__init__ .py <==
+
+==> src/services/websockets/notification_socket.py <==
+
+==> test/__init__ .py <==
+

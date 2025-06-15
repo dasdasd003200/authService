@@ -18,5 +18,3 @@ python-decouple==3.8
 
 # Development tools (remover en producción)
 django-extensions==3.2.3
-
-
