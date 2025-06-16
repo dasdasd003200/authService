@@ -1,4 +1,4 @@
-# config/settings.py
+# config/settings.py - Configuración simple para AuthService
 from pathlib import Path
 from decouple import config, Csv
 
@@ -19,16 +19,14 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "graphene_django",
-    "corsheaders",
-    # Local apps
-    "src.feature.users.infrastructure.web",
-    "src.feature.authentication.infrastructure.web",
-    "src.feature.sessions.infrastructure.web",
+    # Local apps (comentadas hasta que estén listas)
+    # "src.feature.users.infrastructure.web",
+    # "src.feature.authentication.infrastructure.web",
+    # "src.feature.sessions.infrastructure.web",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -106,11 +104,5 @@ JWT_SECRET_KEY = config("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast=int)
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
-
-CORS_ALLOW_CREDENTIALS = True
+print(f"🚀 AuthService simple - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
 
