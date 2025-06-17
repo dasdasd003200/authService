@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     # Third party
     "graphene_django",
     # Local apps (comentadas hasta que estén listas)
-    # "src.feature.users.infrastructure.web",
+    "src.feature.users.infrastructure.web",
     # "src.feature.authentication.infrastructure.web",
     # "src.feature.sessions.infrastructure.web",
 ]
@@ -105,4 +105,3 @@ JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
 
 print(f"🚀 AuthService simple - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
-
