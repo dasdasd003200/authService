@@ -1,6 +1,7 @@
 # src/feature/users/infrastructure/database/repositories.py
-from typing import Optional, List, cast
+from typing import Optional, List, cast, Union
 from uuid import UUID
+from datetime import datetime
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
@@ -29,10 +30,10 @@ class DjangoUserRepository(UserRepository):
             last_name=cast(str, model.last_name),
             status=UserStatus.from_string(cast(str, model.status)),
             email_verified=cast(bool, model.email_verified),
-            last_login=model.last_login,
+            last_login=cast(Union[datetime, None], model.last_login),
             failed_login_attempts=cast(int, model.failed_login_attempts),
-            created_at=model.created_at,
-            updated_at=model.updated_at,
+            created_at=cast(datetime, model.created_at),
+            updated_at=cast(datetime, model.updated_at),
         )
 
     def _entity_to_model_data(self, user: User) -> dict:

@@ -68,7 +68,7 @@ class UserModel(AbstractBaseUser):
 
     objects = UserManager()
 
-    class Meta:
+    class Meta:  # type: ignore[misc]
         db_table = "users"
         verbose_name = "User"
         verbose_name_plural = "Users"

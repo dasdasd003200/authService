@@ -60,6 +60,7 @@ class CreateUser(Mutation):
 
     async def mutate(self, info, input):
         """Executes the mutation"""
+        _ = info  # Mark as used
         try:
             # Create the use case
             repository = DjangoUserRepository()
@@ -102,7 +103,7 @@ class CreateUser(Mutation):
                 success=False, message=str(e), error_code=e.error_code
             )
 
-        except Exception as e:
+        except Exception:
             return CreateUserResponse(
                 success=False,
                 message="Internal server error",
