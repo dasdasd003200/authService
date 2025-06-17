@@ -2,15 +2,14 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
-    """Manager personalizado para el modelo User"""
+    """Custom manager for User model"""
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("El email es obligatorio")
+            raise ValueError("Email is required")
 
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
@@ -25,7 +24,7 @@ class UserManager(BaseUserManager):
 
 
 class UserModel(AbstractBaseUser):
-    """Modelo Django para usuarios"""
+    """Django model for users"""
 
     class StatusChoices(models.TextChoices):
         ACTIVE = "active", "Active"
@@ -43,24 +42,26 @@ class UserModel(AbstractBaseUser):
         default=StatusChoices.PENDING_VERIFICATION,
         verbose_name="Status",
     )
-    email_verified = models.BooleanField(default=False, verbose_name="Email Verified")
-    failed_login_attempts = models.IntegerField(
-        default=0, verbose_name="Failed Login Attempts"
-    )
+    email_verified = models.BooleanField(verbose_name="Email Verified")
+    failed_login_attempts = models.IntegerField(verbose_name="Failed Login Attempts")
     last_login = models.DateTimeField(null=True, blank=True, verbose_name="Last Login")
 
     # Campos para Django Admin
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField()
+    is_staff = models.BooleanField()
+    is_superuser = models.BooleanField()
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
-    # Password storage (será manejado por el value object)
-    password_hash = models.CharField(max_length=255, verbose_name="Password Hash")
-    password_salt = models.CharField(max_length=64, verbose_name="Password Salt")
+    # Password storage (managed by value object)
+    password_hash = models.CharField(
+        max_length=255, verbose_name="Password Hash", blank=True
+    )
+    password_salt = models.CharField(
+        max_length=64, verbose_name="Password Salt", blank=True
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -81,12 +82,30 @@ class UserModel(AbstractBaseUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
 
+    def save(self, *args, **kwargs):
+        # Set defaults if not provided (only for fields without defaults)
+        if not hasattr(self, "_state") or self._state.adding:
+            if self.email_verified is None:
+                self.email_verified = False
+            if self.failed_login_attempts is None:
+                self.failed_login_attempts = 0
+            if self.is_active is None:
+                self.is_active = True
+            if self.is_staff is None:
+                self.is_staff = False
+            if self.is_superuser is None:
+                self.is_superuser = False
+        super().save(*args, **kwargs)
+
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
 
     def has_perm(self, perm, obj=None):
+        _ = perm, obj  # Mark as used
         return self.is_superuser
 
     def has_module_perms(self, app_label):
+        _ = app_label  # Mark as used
         return self.is_superuser
+

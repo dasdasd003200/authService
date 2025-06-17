@@ -1,9 +1,9 @@
 # src/feature/users/infrastructure/database/repositories.py
-from typing import Optional, List
+from typing import Optional, List, cast
 from uuid import UUID
 
-from django.db.models import QuerySet
 from asgiref.sync import sync_to_async
+from django.core.exceptions import ObjectDoesNotExist
 
 from src.core.domain.value_objects.email import Email
 from src.core.domain.repositories.criteria.base_criteria import BaseCriteria
@@ -15,26 +15,28 @@ from src.feature.users.infrastructure.database.models import UserModel
 
 
 class DjangoUserRepository(UserRepository):
-    """Implementación del repositorio de usuarios con Django ORM"""
+    """Django ORM implementation of user repository"""
 
     def _model_to_entity(self, model: UserModel) -> User:
-        """Convierte modelo Django a entidad de dominio"""
+        """Converts Django model to domain entity"""
         return User(
-            id=model.id,
-            email=Email(model.email),
-            password=Password.from_hash(model.password_hash, model.password_salt),
-            first_name=model.first_name,
-            last_name=model.last_name,
-            status=UserStatus.from_string(model.status),
-            email_verified=model.email_verified,
+            id=cast(UUID, model.id),
+            email=Email(cast(str, model.email)),
+            password=Password.from_hash(
+                cast(str, model.password_hash), cast(str, model.password_salt)
+            ),
+            first_name=cast(str, model.first_name),
+            last_name=cast(str, model.last_name),
+            status=UserStatus.from_string(cast(str, model.status)),
+            email_verified=cast(bool, model.email_verified),
             last_login=model.last_login,
-            failed_login_attempts=model.failed_login_attempts,
+            failed_login_attempts=cast(int, model.failed_login_attempts),
             created_at=model.created_at,
             updated_at=model.updated_at,
         )
 
     def _entity_to_model_data(self, user: User) -> dict:
-        """Convierte entidad de dominio a datos para modelo Django"""
+        """Converts domain entity to Django model data"""
         return {
             "id": user.id,
             "email": str(user.email),
@@ -48,43 +50,46 @@ class DjangoUserRepository(UserRepository):
             "password_salt": user.password.salt,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
+            "is_active": user.status == UserStatus.ACTIVE,
+            "is_staff": False,
+            "is_superuser": False,
         }
 
     async def save(self, user: User) -> User:
-        """Guarda o actualiza un usuario"""
+        """Saves or updates a user"""
         data = self._entity_to_model_data(user)
 
-        model, created = await sync_to_async(UserModel.objects.update_or_create)(
+        model, _ = await sync_to_async(UserModel.objects.update_or_create)(
             id=user.id, defaults=data
         )
 
         return self._model_to_entity(model)
 
     async def find_by_id(self, user_id: UUID) -> Optional[User]:
-        """Busca usuario por ID"""
+        """Finds user by ID"""
         try:
             model = await sync_to_async(UserModel.objects.get)(id=user_id)
             return self._model_to_entity(model)
-        except UserModel.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
     async def find_by_email(self, email: Email) -> Optional[User]:
-        """Busca usuario por email"""
+        """Finds user by email"""
         try:
             model = await sync_to_async(UserModel.objects.get)(email=str(email))
             return self._model_to_entity(model)
-        except UserModel.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
     async def exists_by_email(self, email: Email) -> bool:
-        """Verifica si existe un usuario con el email"""
+        """Checks if a user exists with the email"""
         return await sync_to_async(UserModel.objects.filter(email=str(email)).exists)()
 
     async def find_by_criteria(self, criteria: List[BaseCriteria]) -> List[User]:
-        """Busca usuarios por criterios"""
+        """Finds users by criteria"""
         queryset = UserModel.objects.all()
 
-        # Aplicar criterios
+        # Apply criteria
         for criterion in criteria:
             queryset = criterion.apply(queryset)
 
@@ -92,7 +97,7 @@ class DjangoUserRepository(UserRepository):
         return [self._model_to_entity(model) for model in models]
 
     async def delete(self, user_id: UUID) -> bool:
-        """Elimina un usuario (soft delete)"""
+        """Deletes a user (soft delete)"""
         try:
             await sync_to_async(UserModel.objects.filter(id=user_id).update)(
                 status=UserStatus.INACTIVE.value
@@ -102,11 +107,12 @@ class DjangoUserRepository(UserRepository):
             return False
 
     async def count_by_criteria(self, criteria: List[BaseCriteria]) -> int:
-        """Cuenta usuarios por criterios"""
+        """Counts users by criteria"""
         queryset = UserModel.objects.all()
 
-        # Aplicar criterios
+        # Apply criteria
         for criterion in criteria:
             queryset = criterion.apply(queryset)
 
         return await sync_to_async(queryset.count)()
+

@@ -1,6 +1,5 @@
 # src/feature/users/application/use_cases/create_user.py
 from dataclasses import dataclass
-from typing import Optional
 
 from src.core.domain.value_objects.email import Email
 from src.core.exceptions.base_exceptions import ConflictError
@@ -12,7 +11,7 @@ from src.feature.users.domain.value_objects.user_status import UserStatus
 
 @dataclass
 class CreateUserCommand:
-    """Comando para crear usuario"""
+    """Command for creating user"""
 
     email: str
     password: str
@@ -23,7 +22,7 @@ class CreateUserCommand:
 
 @dataclass
 class CreateUserResult:
-    """Resultado de crear usuario"""
+    """Result of creating user"""
 
     user_id: str
     email: str
@@ -33,26 +32,26 @@ class CreateUserResult:
 
 
 class CreateUserUseCase:
-    """Caso de uso para crear un nuevo usuario"""
+    """Use case for creating a new user"""
 
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
     async def execute(self, command: CreateUserCommand) -> CreateUserResult:
-        """Ejecuta la creación del usuario"""
+        """Executes user creation"""
 
-        # Crear value objects
+        # Create value objects
         email = Email(command.email)
         password = Password.create(command.password)
 
-        # Verificar que no existe el usuario
+        # Check that user doesn't exist
         if await self.user_repository.exists_by_email(email):
             raise ConflictError(
-                f"Ya existe un usuario con el email {email}",
+                f"User with email {email} already exists",
                 error_code="USER_ALREADY_EXISTS",
             )
 
-        # Crear la entidad
+        # Create entity
         user = User(
             email=email,
             password=password,
@@ -64,10 +63,10 @@ class CreateUserUseCase:
             email_verified=command.email_verified,
         )
 
-        # Guardar en el repositorio
+        # Save in repository
         saved_user = await self.user_repository.save(user)
 
-        # Retornar resultado
+        # Return result
         return CreateUserResult(
             user_id=str(saved_user.id),
             email=str(saved_user.email),
@@ -75,3 +74,4 @@ class CreateUserUseCase:
             status=saved_user.status.value,
             email_verified=saved_user.email_verified,
         )
+

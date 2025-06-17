@@ -12,26 +12,46 @@ from src.feature.users.infrastructure.web.graphql.types import UserType
 
 
 class CreateUserInput(graphene.InputObjectType):
-    """Input para crear usuario"""
+    """Input for creating user"""
 
-    email = String(required=True, description="Email del usuario")
-    password = String(required=True, description="Contraseña del usuario")
-    first_name = String(required=True, description="Nombre del usuario")
-    last_name = String(required=True, description="Apellido del usuario")
-    email_verified = Boolean(default_value=False, description="Email verificado")
+    email = String(required=True, description="User email")
+    password = String(required=True, description="User password")
+    first_name = String(required=True, description="User first name")
+    last_name = String(required=True, description="User last name")
+    email_verified = Boolean(default_value=False, description="Email verified")
 
 
 class CreateUserPayload(ObjectType):
-    """Respuesta de crear usuario"""
+    """Response for creating user"""
 
-    success = Boolean(description="Indica si la operación fue exitosa")
-    user = Field(UserType, description="Usuario creado")
-    message = String(description="Mensaje de respuesta")
-    error_code = String(description="Código de error si aplica")
+    success = Boolean(description="Indicates if operation was successful")
+    user = Field(UserType, description="Created user")
+    message = String(description="Response message")
+    error_code = String(description="Error code if applicable")
+
+
+class UserData:
+    """Simple data container for GraphQL UserType"""
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+
+class CreateUserResponse:
+    """Response object for CreateUser mutation"""
+
+    def __init__(
+        self, success: bool, user=None, message: str = "", error_code: str = ""
+    ):
+        self.success = success
+        self.user = user
+        self.message = message
+        self.error_code = error_code
 
 
 class CreateUser(Mutation):
-    """Mutation para crear un nuevo usuario"""
+    """Mutation for creating a new user"""
 
     class Arguments:
         input = CreateUserInput(required=True)
@@ -39,13 +59,13 @@ class CreateUser(Mutation):
     Output = CreateUserPayload
 
     async def mutate(self, info, input):
-        """Ejecuta la mutation"""
+        """Executes the mutation"""
         try:
-            # Crear el caso de uso
+            # Create the use case
             repository = DjangoUserRepository()
             use_case = CreateUserUseCase(repository)
 
-            # Crear comando
+            # Create command
             command = CreateUserCommand(
                 email=input.email,
                 password=input.password,
@@ -54,42 +74,44 @@ class CreateUser(Mutation):
                 email_verified=input.email_verified,
             )
 
-            # Ejecutar caso de uso
+            # Execute use case
             result = await use_case.execute(command)
 
-            return CreateUserPayload(
-                success=True,
-                user=UserType(
-                    id=result.user_id,
-                    email=result.email,
-                    first_name=input.first_name,
-                    last_name=input.last_name,
-                    full_name=result.full_name,
-                    status=result.status,
-                    email_verified=result.email_verified,
-                ),
-                message="Usuario creado exitosamente",
+            # Create user data object for GraphQL
+            user_data = UserData(
+                id=result.user_id,
+                email=result.email,
+                first_name=input.first_name,
+                last_name=input.last_name,
+                full_name=result.full_name,
+                status=result.status,
+                email_verified=result.email_verified,
+            )
+
+            return CreateUserResponse(
+                success=True, user=user_data, message="User created successfully"
             )
 
         except ValidationException as e:
-            return CreateUserPayload(
+            return CreateUserResponse(
                 success=False, message=str(e), error_code=e.error_code
             )
 
         except ConflictError as e:
-            return CreateUserPayload(
+            return CreateUserResponse(
                 success=False, message=str(e), error_code=e.error_code
             )
 
         except Exception as e:
-            return CreateUserPayload(
+            return CreateUserResponse(
                 success=False,
-                message="Error interno del servidor",
+                message="Internal server error",
                 error_code="INTERNAL_ERROR",
             )
 
 
 class UserMutations(ObjectType):
-    """Mutations de usuarios"""
+    """User mutations"""
 
     create_user = CreateUser.Field()
+

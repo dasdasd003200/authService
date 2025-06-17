@@ -1,6 +1,6 @@
 # src/core/domain/entities/base_entity.py
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4, UUID
 from typing import Optional
 
@@ -15,12 +15,12 @@ class BaseEntity(ABC):
         updated_at: Optional[datetime] = None,
     ):
         self.id = id or uuid4()
-        self.created_at = created_at or datetime.utcnow()
-        self.updated_at = updated_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
+        self.updated_at = updated_at or datetime.now(timezone.utc)
 
     def update_timestamp(self):
         """Actualiza el timestamp de modificación"""
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -29,3 +29,4 @@ class BaseEntity(ABC):
 
     def __hash__(self):
         return hash(self.id)
+

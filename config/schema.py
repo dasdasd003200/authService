@@ -6,7 +6,7 @@ from src.feature.users.infrastructure.web.graphql.mutations import UserMutations
 class Query(graphene.ObjectType):
     health = graphene.String()
 
-    def resolve_health(self, info):
+    def resolve_health(self, _):
         return "Auth Service is running!"
 
 

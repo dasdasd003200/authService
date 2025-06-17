@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from django.db.models import QuerySet
 
 
@@ -34,3 +34,4 @@ class CriteriaBuilder:
         for criteria in self._criteria:
             queryset = criteria.apply(queryset)
         return queryset
+

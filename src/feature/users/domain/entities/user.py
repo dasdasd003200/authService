@@ -1,5 +1,5 @@
 # src/feature/users/domain/entities/user.py
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -81,7 +81,7 @@ class User(BaseEntity):
 
     def record_login_success(self):
         """Registra un login exitoso"""
-        self.last_login = datetime.utcnow()
+        self.last_login = datetime.now(timezone.utc)
         self.failed_login_attempts = 0
         self.update_timestamp()
 
@@ -110,3 +110,4 @@ class User(BaseEntity):
             self.last_name = last_name.strip()
         self.update_timestamp()
         self._validate()
+
