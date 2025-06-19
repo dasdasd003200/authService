@@ -1,4 +1,4 @@
-# config/settings.py - Configuración simple para AuthService
+# config/settings.py - Updated configuration for AuthService
 from pathlib import Path
 from decouple import config, Csv
 
@@ -19,8 +19,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "graphene_django",
-    # Local apps (comentadas hasta que estén listas)
-    "src.feature.users.infrastructure.web",
+    # Local apps
+    "src.feature.users.infrastructure.web.apps.UsersConfig",
+    # Add other features when ready
     # "src.feature.authentication.infrastructure.web",
     # "src.feature.sessions.infrastructure.web",
 ]
@@ -67,6 +68,9 @@ DATABASES = {
     }
 }
 
+# IMPORTANT: Tell Django to use your custom user model
+AUTH_USER_MODEL = "users.UserModel"
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -104,4 +108,5 @@ JWT_SECRET_KEY = config("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast=int)
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
 
-print(f"🚀 AuthService simple - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
+print(f"AuthService - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
+

@@ -2,10 +2,14 @@
 import uuid
 from typing import Any, Optional
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 
 
-class UserManager(BaseUserManager):  # Removed type parameter
+class UserManager(BaseUserManager):
     """Custom manager for User model"""
 
     def create_user(
@@ -28,10 +32,16 @@ class UserManager(BaseUserManager):  # Removed type parameter
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("status", UserModel.StatusChoices.ACTIVE)
         extra_fields.setdefault("email_verified", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
         return self.create_user(email, password, **extra_fields)
 
 
-class UserModel(AbstractBaseUser):
+class UserModel(AbstractBaseUser, PermissionsMixin):
     """Django model for users"""
 
     class StatusChoices(models.TextChoices):
@@ -48,23 +58,20 @@ class UserModel(AbstractBaseUser):
 
     # Status and verification fields
     status = models.CharField(
-        max_length=20,
+        max_length=25,  # Increased to accommodate "pending_verification"
         choices=StatusChoices.choices,
         default=StatusChoices.PENDING_VERIFICATION,
         verbose_name="Status",
     )
     email_verified = models.BooleanField(default=False, verbose_name="Email Verified")
-    failed_login_attempts = (
-        models.PositiveIntegerField(  # Changed to PositiveIntegerField
-            default=0, verbose_name="Failed Login Attempts"
-        )
+    failed_login_attempts = models.PositiveIntegerField(
+        default=0, verbose_name="Failed Login Attempts"
     )
     last_login = models.DateTimeField(null=True, blank=True, verbose_name="Last Login")
 
-    # Django admin fields
+    # Django admin fields (PermissionsMixin provides groups and user_permissions)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
@@ -84,6 +91,7 @@ class UserModel(AbstractBaseUser):
     objects = UserManager()
 
     class Meta:
+        app_label = "users"
         db_table = "users"
         verbose_name = "User"
         verbose_name_plural = "Users"
@@ -102,16 +110,8 @@ class UserModel(AbstractBaseUser):
         """Return user's full name"""
         return f"{self.first_name} {self.last_name}"
 
-    def has_perm(self, perm: str, obj: Any = None) -> bool:
-        """Check if user has a specific permission"""
-        # Note: perm and obj parameters are required by Django interface
-        # but not used in this simple implementation
-        _ = perm, obj  # Mark as used to avoid linter warnings
-        return self.is_superuser
+    def clean(self):
+        """Clean method for validation"""
+        super().clean()
+        self.email = self.__class__.objects.normalize_email(self.email)
 
-    def has_module_perms(self, app_label: str) -> bool:
-        """Check if user has permissions for a specific app"""
-        # Note: app_label parameter is required by Django interface
-        # but not used in this simple implementation
-        _ = app_label  # Mark as used to avoid linter warnings
-        return self.is_superuser
