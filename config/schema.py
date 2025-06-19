@@ -1,9 +1,12 @@
 # config/schema.py
 import graphene
 from src.feature.users.infrastructure.web.graphql.mutations import UserMutations
+from src.feature.users.infrastructure.web.graphql.queries import UserQueries
 
 
-class Query(graphene.ObjectType):
+class Query(UserQueries, graphene.ObjectType):
+    """Main GraphQL queries"""
+
     health = graphene.String()
 
     def resolve_health(self, _):
@@ -11,10 +14,9 @@ class Query(graphene.ObjectType):
 
 
 class Mutation(UserMutations, graphene.ObjectType):
-    """Mutations principales del servicio"""
+    """Main GraphQL mutations"""
 
     pass
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
-
