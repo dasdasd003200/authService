@@ -8,3 +8,8 @@ class UsersConfig(AppConfig):
     label: str = "users"
     verbose_name: str = "Users Management"
 
+    def ready(self):
+        """Import models when app is ready"""
+        # Import the models to ensure they are registered
+        from src.feature.users.infrastructure.database import models
+

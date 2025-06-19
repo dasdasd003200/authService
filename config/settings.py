@@ -19,8 +19,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third party
     "graphene_django",
-    # Local apps
-    "src.feature.users.infrastructure.web.apps.UsersConfig",
+    # Local apps - FIXED: Use the correct app path
+    "src.feature.users.infrastructure.web",
     # Add other features when ready
     # "src.feature.authentication.infrastructure.web",
     # "src.feature.sessions.infrastructure.web",

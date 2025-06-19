@@ -91,7 +91,9 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     class Meta:
-        app_label = "users"
+        app_label = (
+            "users"  # This is crucial - it tells Django which app this model belongs to
+        )
         db_table = "users"
         verbose_name = "User"
         verbose_name_plural = "Users"
