@@ -1,5 +1,5 @@
 # src/feature/users/application/use_cases/delete_user.py - NEW SIMPLIFIED
-from uuid import UUID
+# from uuid import UUID
 from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository

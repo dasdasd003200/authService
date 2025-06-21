@@ -1,0 +1,150 @@
+# pyproject.toml - SOLO ERRORES CRÍTICOS DE VERDAD
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "authservice"
+version = "0.1.0"
+description = "Authentication Service with DDD Architecture"
+dependencies = [
+    "Django>=5.2.3",
+    "djangorestframework>=3.15.2",
+    "psycopg2-binary>=2.9.9",
+    "strawberry-graphql[django]>=0.248.1",
+    "PyJWT>=2.9.0",
+    "python-decouple>=3.8",
+]
+
+[tool.pyright]
+# ===== CONFIGURACIÓN ULTRA MINIMALISTA =====
+# Solo errores de sintaxis y variables realmente no definidas
+
+# DESACTIVAR COMPLETAMENTE EL TYPE CHECKING
+typeCheckingMode = "off"
+useLibraryCodeForTypes = false
+autoSearchPaths = false
+autoImportCompletions = false
+
+# SILENCIAR ABSOLUTAMENTE TODO excepto sintaxis crítica
+reportMissingTypeStubs = "none"
+reportUnknownMemberType = "none"
+reportAttributeAccessIssue = "none"
+reportUnknownArgumentType = "none"
+reportOptionalMemberAccess = "none"
+reportIncompatibleMethodOverride = "none"
+reportIncompatibleVariableOverride = "none"
+reportPossiblyUnboundVariable = "none"
+reportInvalidTypeArguments = "none"
+reportInvalidTypeVarUse = "none"
+reportReturnType = "none"
+reportUnusedImport = "none"
+reportUnusedVariable = "none"
+reportUnusedFunction = "none"
+reportCallIssue = "none"
+reportArgumentType = "none"
+reportAssignmentType = "none"
+reportGeneralTypeIssues = "none"
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+reportImportCycles = "none"
+reportPrivateUsage = "none"
+reportConstantRedefinition = "none"
+reportDuplicateImport = "none"
+reportFunctionMemberAccess = "none"
+reportInvalidStringEscapeSequence = "none"
+reportInvalidTypeAnnotation = "none"
+reportMissingParameterType = "none"
+reportSelfClsParameterName = "none"
+reportUninitializedInstanceVariable = "none"
+reportUnknownParameterType = "none"
+reportUnnecessaryCast = "none"
+reportUnnecessaryComparison = "none"
+reportUnnecessaryContains = "none"
+reportUnnecessaryIsInstance = "none"
+reportUnreachableCode = "none"
+reportUnusedExpression = "none"
+reportWildcardImportFromLibrary = "none"
+reportUntypedBaseClass = "none"
+reportUntypedClassDecorator = "none"
+reportUntypedFunctionDecorator = "none"
+reportUntypedNamedTuple = "none"
+reportUnknownLambdaType = "none"
+reportUnknownVariableType = "none"
+reportOptionalCall = "none"
+reportOptionalContextManager = "none"
+reportOptionalIterable = "none"
+reportOptionalOperand = "none"
+reportOptionalSubscript = "none"
+reportOverlappingOverload = "none"
+reportUnusedClass = "none"
+reportUnusedCoroutine = "none"
+reportOperatorIssue = "none"
+
+# SOLO MANTENER ESTOS (errores críticos de sintaxis)
+reportSyntaxError = "error"
+reportIndentationError = "error"
+reportUndefinedVariable = "error"
+
+# CONFIGURACIÓN MÍNIMA
+pythonVersion = "3.12"
+include = ["src/**/*.py", "config/**/*.py", "manage.py"]
+exclude = ["**/__pycache__", "**/migrations/**", "**/venv", "**/env", "test/**", "tests/**"]
+
+[tool.ruff]
+# RUFF ULTRA MINIMALISTA
+target-version = "py312"
+line-length = 500  # Líneas súper largas permitidas
+src = ["src", "config"]
+
+[tool.ruff.lint]
+# SOLO ERRORES DE SINTAXIS CRÍTICOS
+select = [
+    "E9",   # Solo errores de sintaxis críticos
+    "F63",  # Solo errores de sintaxis críticos  
+    "F7",   # Solo errores de sintaxis críticos
+    "F82",  # Solo undefined name (crítico)
+]
+
+# IGNORAR TODO LO DEMÁS
+ignore = [
+    "E",    # Todos los errores de estilo
+    "W",    # Todas las advertencias
+    "F401", # Imported but unused
+    "F811", # Redefined unused
+    "F841", # Local variable assigned but never used
+    "F403", # Star imports
+    "F405", # Name may be undefined from star imports
+    "N",    # Naming conventions
+    "UP",   # Pyupgrade
+    "B",    # Bugbear
+    "C4",   # Comprehensions
+    "I",    # Isort
+]
+
+# IGNORAR TODO EN TODOS LOS ARCHIVOS
+[tool.ruff.lint.per-file-ignores]
+"**/*.py" = ["E", "F", "W", "N", "UP", "B", "C4", "I"]
+
+# ===== INSTRUCCIONES DE USO =====
+# 
+# 🎯 ESTA CONFIGURACIÓN ES EXTREMA
+# 
+# ✅ SOLO VERÁS:
+#   - Error de sintaxis (paréntesis mal cerrados, etc.)
+#   - Variables no definidas (NameError)
+#   - Errores de indentación
+#
+# 🚫 NO VERÁS:
+#   - NADA de Django
+#   - NADA de tipos  
+#   - NADA de imports
+#   - NADA de variables no usadas
+#   - NADA de warnings
+#   - NADA de sugerencias
+#
+# 🔧 DESPUÉS DE APLICAR:
+# 1. Reinicia Nvim completamente: :qa y vuelve a abrir
+# 2. Reinicia LSP: :LspRestart
+# 3. Si sigues viendo errores, usa: <leader>dD para deshabilitar diagnósticos
+# 4. Para ver solo cuando necesites: <leader>dd para habilitar

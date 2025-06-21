@@ -1,7 +1,7 @@
 # src/feature/users/application/use_cases/get_user.py - SIMPLIFIED
 from dataclasses import dataclass
 from typing import Optional
-from uuid import UUID
+# from uuid import UUID
 
 from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdUseCase
 from src.core.domain.value_objects.email import Email
@@ -45,9 +45,7 @@ class GetUserUseCase(GetEntityByIdUseCase[User]):
         user = await self.user_repository.find_by_email(email)
 
         if not user:
-            raise NotFoundError(
-                f"User with email {query.email} not found", error_code="USER_NOT_FOUND"
-            )
+            raise NotFoundError(f"User with email {query.email} not found", error_code="USER_NOT_FOUND")
 
         return self._user_to_result(user)
 
@@ -64,4 +62,3 @@ class GetUserUseCase(GetEntityByIdUseCase[User]):
             last_login=user.last_login.isoformat() if user.last_login else None,
             failed_login_attempts=user.failed_login_attempts,
         )
-

@@ -1,5 +1,5 @@
-import strawberry
-from typing import TypeVar, Generic, Optional, Type, Callable
+# import strawberry
+from typing import TypeVar, Optional, Callable
 from uuid import UUID
 
 from src.core.infrastructure.web.strawberry.decorators import (
@@ -7,7 +7,8 @@ from src.core.infrastructure.web.strawberry.decorators import (
     safe_resolver,
 )
 from src.core.infrastructure.web.strawberry.base_query import BaseQuery
-from src.core.infrastructure.web.strawberry.base_mutation import BaseMutation
+
+# from src.core.infrastructure.web.strawberry.base_mutation import BaseMutation
 from src.core.domain.repositories.base_repository import BaseRepository
 from src.core.application.use_cases.base_crud_use_cases import (
     GetEntityByIdUseCase,

@@ -4,7 +4,8 @@ from typing import Optional
 from uuid import UUID
 
 from src.core.exceptions.base_exceptions import NotFoundError, ValidationException
-from src.feature.users.domain.entities.user import User
+
+# from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.password import Password
 
@@ -45,16 +46,12 @@ class UpdateUserUseCase:
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
-    async def execute_profile_update(
-        self, command: UpdateUserCommand
-    ) -> UpdateUserResult:
+    async def execute_profile_update(self, command: UpdateUserCommand) -> UpdateUserResult:
         """Update user profile information"""
         # Find user
         user = await self.user_repository.find_by_id(command.user_id)
         if not user:
-            raise NotFoundError(
-                f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND"
-            )
+            raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
         # Update profile
         user.update_profile(first_name=command.first_name, last_name=command.last_name)
@@ -77,9 +74,7 @@ class UpdateUserUseCase:
         # Find user
         user = await self.user_repository.find_by_id(command.user_id)
         if not user:
-            raise NotFoundError(
-                f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND"
-            )
+            raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
         try:
             # Create new password
@@ -108,9 +103,7 @@ class DeactivateUserUseCase:
         # Find user
         user = await self.user_repository.find_by_id(user_id)
         if not user:
-            raise NotFoundError(
-                f"User with ID {user_id} not found", error_code="USER_NOT_FOUND"
-            )
+            raise NotFoundError(f"User with ID {user_id} not found", error_code="USER_NOT_FOUND")
 
         # Deactivate
         user.deactivate()

@@ -1,6 +1,6 @@
 # src/core/infrastructure/database/repositories.py
 from abc import abstractmethod
-from typing import Type, Optional, List, Dict, Any, cast, TypeVar
+from typing import Type, Optional, List, Dict, Any, TypeVar
 from uuid import UUID
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
@@ -83,4 +83,3 @@ class DjangoBaseRepository(BaseRepository[T]):
         return await sync_to_async(
             self.model_class.objects.filter(id=entity_id).exists
         )()
-

@@ -1,6 +1,6 @@
-# src/core/application/use_cases/base_search_use_case.py
+# src/core/application/use_cases/base_search_use_case.py - FIXED CRITICAL
 from dataclasses import dataclass
-from typing import List, Generic, TypeVar, Optional
+from typing import Generic, TypeVar, Optional
 from datetime import datetime
 
 from src.core.domain.entities.base_entity import BaseEntity
@@ -52,14 +52,15 @@ class BaseSearchUseCase(BaseUseCase[BaseSearchQuery, PaginatedResult[T]], Generi
         # Get criteria for count (without pagination)
         count_criteria = criteria_builder.build()
 
+        # FIXED: Ensure pagination is not None
+        pagination = query.pagination or PaginationRequest()
+
         # Add pagination
         from src.core.domain.repositories.criteria.pagination_criteria import (
             PaginationCriteria,
         )
 
-        criteria_builder.add(
-            PaginationCriteria(query.pagination.limit, query.pagination.offset)
-        )
+        criteria_builder.add(PaginationCriteria(pagination.limit, pagination.offset))
         search_criteria = criteria_builder.build()
 
         # Execute queries
@@ -69,8 +70,8 @@ class BaseSearchUseCase(BaseUseCase[BaseSearchQuery, PaginatedResult[T]], Generi
         # Return paginated result
         return PaginatedResult.create(
             items=entities,
-            page=query.pagination.page,
-            page_size=query.pagination.page_size,
+            page=pagination.page,
+            page_size=pagination.page_size,
             total_items=total_count,
         )
 

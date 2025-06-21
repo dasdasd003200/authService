@@ -1,4 +1,4 @@
-# src/feature/users/application/use_cases/search_users.py - SIMPLIFIED FIXED
+# src/feature/users/application/use_cases/search_users.py - FIXED CRITICAL
 from dataclasses import dataclass
 from typing import Optional
 from datetime import datetime
@@ -10,7 +10,6 @@ from src.core.application.use_cases.base_search_use_case import (
 from src.core.domain.repositories.criteria.factory import CriteriaFactory
 from src.core.domain.repositories.criteria.base_criteria import CriteriaBuilder
 from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.value_objects.user_status import UserStatus
 from src.feature.users.domain.entities.user import User
 
 
@@ -43,38 +42,23 @@ class SearchUsersUseCase(BaseSearchUseCase[User]):
     def __init__(self, user_repository: UserRepository):
         super().__init__(user_repository)
 
-    def _add_custom_criteria(
-        self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery
-    ):
+    def _add_custom_criteria(self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery):
         """Add user-specific search criteria"""
-        # Type cast to access user-specific fields
-        search_query = query if hasattr(query, "status") else None
-
-        if search_query is None:
+        # FIXED: Type cast correctly
+        if not isinstance(query, SearchUsersQuery):
             return
 
         # Status filter
-        if hasattr(search_query, "status") and search_query.status:
-            criteria_builder.add(CriteriaFactory.status(search_query.status))
+        if query.status:
+            criteria_builder.add(CriteriaFactory.status(query.status))
 
         # Email verification filter
-        if (
-            hasattr(search_query, "email_verified")
-            and search_query.email_verified is not None
-        ):
-            criteria_builder.add(
-                CriteriaFactory.boolean_field(
-                    "email_verified", search_query.email_verified
-                )
-            )
+        if query.email_verified is not None:
+            criteria_builder.add(CriteriaFactory.boolean_field("email_verified", query.email_verified))
 
         # Text search in name and email
-        if hasattr(search_query, "search_text") and search_query.search_text:
-            criteria_builder.add(
-                CriteriaFactory.text_search(
-                    search_query.search_text, ["first_name", "last_name", "email"]
-                )
-            )
+        if query.search_text:
+            criteria_builder.add(CriteriaFactory.text_search(query.search_text, ["first_name", "last_name", "email"]))
 
     def _convert_entities_to_results(self, users: list[User]) -> list[UserSearchResult]:
         """Convert domain entities to result objects"""
@@ -91,4 +75,3 @@ class SearchUsersUseCase(BaseSearchUseCase[User]):
             )
             for user in users
         ]
-
