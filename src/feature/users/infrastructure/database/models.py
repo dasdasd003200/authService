@@ -21,7 +21,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         if password:
-            user.set_password(password)
+            user.set_password(password)  # This uses Django's password hashing
         user.save(using=self._db)
         return user
 
@@ -58,7 +58,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
 
     # Status and verification fields
     status = models.CharField(
-        max_length=25,  # Increased to accommodate "pending_verification"
+        max_length=25,
         choices=StatusChoices.choices,
         default=StatusChoices.PENDING_VERIFICATION,
         verbose_name="Status",
@@ -69,7 +69,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     )
     last_login = models.DateTimeField(null=True, blank=True, verbose_name="Last Login")
 
-    # Django admin fields (PermissionsMixin provides groups and user_permissions)
+    # Django admin fields
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
@@ -77,13 +77,9 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
-    # Password storage (managed by value object)
-    password_hash = models.CharField(
-        max_length=255, verbose_name="Password Hash", blank=True
-    )
-    password_salt = models.CharField(
-        max_length=64, verbose_name="Password Salt", blank=True
-    )
+    # REMOVED: Custom password fields - using Django's built-in password field
+    # password_hash = models.CharField(max_length=255, verbose_name="Password Hash", blank=True)
+    # password_salt = models.CharField(max_length=64, verbose_name="Password Salt", blank=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -91,9 +87,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     class Meta:
-        app_label = (
-            "users"  # This is crucial - it tells Django which app this model belongs to
-        )
+        app_label = "users"
         db_table = "users"
         verbose_name = "User"
         verbose_name_plural = "Users"
@@ -116,4 +110,3 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         """Clean method for validation"""
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
-

@@ -5,6 +5,7 @@ from datetime import datetime
 
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.hashers import make_password, check_password
 
 from src.core.domain.value_objects.email import Email
 from src.core.domain.repositories.criteria.base_criteria import BaseCriteria
@@ -15,17 +16,47 @@ from src.feature.users.domain.value_objects.user_status import UserStatus
 from src.feature.users.infrastructure.database.models import UserModel
 
 
+class DjangoPasswordAdapter(Password):
+    """Adapter to make Django password work with domain Password"""
+
+    def __init__(self, django_password_hash: str):
+        # We don't use the domain's hashed_value and salt for Django
+        # Instead we store the Django hash directly
+        self._django_hash = django_password_hash
+        # Set dummy values for the parent class
+        object.__setattr__(self, "hashed_value", django_password_hash)
+        object.__setattr__(self, "salt", "")
+
+    @classmethod
+    def create_django(cls, plain_password: str) -> "DjangoPasswordAdapter":
+        """Create password using Django's hashing"""
+        # Validate using domain rules
+        cls._validate_password(plain_password)
+        # Hash using Django
+        django_hash = make_password(plain_password)
+        return cls(django_hash)
+
+    def verify(self, plain_password: str) -> bool:
+        """Verify password using Django's system"""
+        return check_password(plain_password, self._django_hash)
+
+    @property
+    def django_hash(self) -> str:
+        return self._django_hash
+
+
 class DjangoUserRepository(UserRepository):
     """Django ORM implementation of user repository"""
 
     def _model_to_entity(self, model: UserModel) -> User:
         """Converts Django model to domain entity"""
+        # Create password adapter for Django hash
+        password = DjangoPasswordAdapter(cast(str, model.password))
+
         return User(
             id=cast(UUID, model.id),
             email=Email(cast(str, model.email)),
-            password=Password.from_hash(
-                cast(str, model.password_hash), cast(str, model.password_salt)
-            ),
+            password=password,
             first_name=cast(str, model.first_name),
             last_name=cast(str, model.last_name),
             status=UserStatus.from_string(cast(str, model.status)),
@@ -38,7 +69,7 @@ class DjangoUserRepository(UserRepository):
 
     def _entity_to_model_data(self, user: User) -> dict:
         """Converts domain entity to Django model data"""
-        return {
+        data = {
             "id": user.id,
             "email": str(user.email),
             "first_name": user.first_name,
@@ -47,14 +78,22 @@ class DjangoUserRepository(UserRepository):
             "email_verified": user.email_verified,
             "last_login": user.last_login,
             "failed_login_attempts": user.failed_login_attempts,
-            "password_hash": user.password.hashed_value,
-            "password_salt": user.password.salt,
             "created_at": user.created_at,
             "updated_at": user.updated_at,
             "is_active": user.status == UserStatus.ACTIVE,
             "is_staff": False,
             "is_superuser": False,
         }
+
+        # Handle password - check if it's Django adapter or domain Password
+        if isinstance(user.password, DjangoPasswordAdapter):
+            data["password"] = user.password.django_hash
+        else:
+            # If it's a domain Password, we need to convert it
+            # This shouldn't happen in normal flow, but just in case
+            data["password"] = user.password.hashed_value
+
+        return data
 
     async def save(self, user: User) -> User:
         """Saves or updates a user"""
