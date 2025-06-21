@@ -4,7 +4,6 @@ Strawberry GraphQL mutations for User feature.
 """
 
 import strawberry
-from asgiref.sync import sync_to_async
 
 from src.core.exceptions.base_exceptions import BaseDomainException
 from src.core.infrastructure.web.strawberry.types import UserStatusEnumStrawberry

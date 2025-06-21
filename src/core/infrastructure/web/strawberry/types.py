@@ -5,7 +5,10 @@ Base Strawberry types for consistent responses across all features.
 
 import strawberry
 from enum import Enum
-from typing import Optional, TypeVar, List
+from typing import Optional, TypeVar, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Type, Any
 
 T = TypeVar("T")
 
@@ -49,34 +52,34 @@ class PaginationInput:
     )
 
 
-def create_response_type(data_type, type_name: str):
+def create_response_type(data_type: "Type[Any]", type_name: str):
     """
     Factory function to create response types with data field.
 
     Usage:
         CreateUserResponse = create_response_type(UserType, "CreateUserResponse")
     """
+    from typing import Any
 
     @strawberry.type(name=type_name)
     class Response(BaseResponse):
-        data: Optional[data_type] = strawberry.field(
-            description="The operation result data"
-        )
+        data: Optional[Any] = strawberry.field(description="The operation result data")
 
     return Response
 
 
-def create_paginated_type(item_type, type_name: str):
+def create_paginated_type(item_type: "Type[Any]", type_name: str):
     """
     Factory function to create paginated response types.
 
     Usage:
         UserPaginatedResponse = create_paginated_type(UserType, "UserPaginatedResponse")
     """
+    from typing import Any
 
     @strawberry.type(name=type_name)
     class PaginatedResponse:
-        items: List[item_type] = strawberry.field(description="List of items")
+        items: List[Any] = strawberry.field(description="List of items")
         pagination: PaginationInfo = strawberry.field(
             description="Pagination information"
         )

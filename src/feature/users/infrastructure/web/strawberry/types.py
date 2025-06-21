@@ -7,7 +7,10 @@ import strawberry
 from typing import Optional, List
 from datetime import datetime
 
-from src.core.infrastructure.web.strawberry.types import UserStatusEnumStrawberry
+from src.core.infrastructure.web.strawberry.types import (
+    UserStatusEnumStrawberry,
+    PaginationInfo,
+)
 
 
 @strawberry.type
@@ -60,11 +63,5 @@ class UserPaginatedResponse:
     """Paginated response for users"""
 
     items: List[UserType] = strawberry.field(description="List of users")
-    pagination: "PaginationInfo" = strawberry.field(
-        description="Pagination information"
-    )
-
-
-# Import PaginationInfo for forward reference
-from src.core.infrastructure.web.strawberry.types import PaginationInfo
+    pagination: PaginationInfo = strawberry.field(description="Pagination information")
 
