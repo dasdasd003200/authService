@@ -7,8 +7,8 @@ from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
 
-# Import the Django password adapter
-from src.feature.users.infrastructure.database.repositories import DjangoPasswordAdapter
+# Import password service from core
+from src.core.application.services.password_service import create_password_from_plain
 
 
 @dataclass
@@ -44,8 +44,8 @@ class CreateUserUseCase:
 
         # Create value objects
         email = Email(command.email)
-        # Use Django password adapter instead of domain Password
-        password = DjangoPasswordAdapter.create_django(command.password)
+        # Use core password service
+        password = create_password_from_plain(command.password)
 
         # Check that user doesn't exist
         if await self.user_repository.exists_by_email(email):
@@ -77,4 +77,3 @@ class CreateUserUseCase:
             status=saved_user.status.value,
             email_verified=saved_user.email_verified,
         )
-
