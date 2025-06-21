@@ -1,24 +1,26 @@
-# src/feature/users/application/use_cases/search_users.py
+# src/feature/users/application/use_cases/search_users.py - SIMPLIFIED FIXED
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 from datetime import datetime
 
+from src.core.application.use_cases.base_search_use_case import (
+    BaseSearchUseCase,
+    BaseSearchQuery,
+)
+from src.core.domain.repositories.criteria.factory import CriteriaFactory
 from src.core.domain.repositories.criteria.base_criteria import CriteriaBuilder
-from src.core.domain.repositories.criteria.date_range_criteria import DateRangeCriteria
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
+from src.feature.users.domain.entities.user import User
 
 
 @dataclass
-class SearchUsersQuery:
-    """Query for searching users"""
+class SearchUsersQuery(BaseSearchQuery):
+    """Query for searching users - extends base with user-specific filters"""
 
     status: Optional[str] = None
     email_verified: Optional[bool] = None
-    created_after: Optional[datetime] = None
-    created_before: Optional[datetime] = None
-    limit: int = 10
-    offset: int = 0
+    search_text: Optional[str] = None  # Search in name/email
 
 
 @dataclass
@@ -35,100 +37,48 @@ class UserSearchResult:
     created_at: datetime
 
 
-@dataclass
-class SearchUsersResult:
-    """Result of searching users"""
-
-    users: List[UserSearchResult]
-    total_count: int
-    has_next: bool
-    has_previous: bool
-
-
-class UserStatusCriteria:
-    """Criteria for filtering by user status"""
-
-    def __init__(self, status: UserStatus):
-        self.status = status
-
-    def apply(self, queryset):
-        return queryset.filter(status=self.status.value)
-
-    def to_dict(self):
-        return {"type": "user_status", "status": self.status.value}
-
-
-class EmailVerifiedCriteria:
-    """Criteria for filtering by email verification"""
-
-    def __init__(self, email_verified: bool):
-        self.email_verified = email_verified
-
-    def apply(self, queryset):
-        return queryset.filter(email_verified=self.email_verified)
-
-    def to_dict(self):
-        return {"type": "email_verified", "email_verified": self.email_verified}
-
-
-class PaginationCriteria:
-    """Criteria for pagination"""
-
-    def __init__(self, limit: int, offset: int):
-        self.limit = limit
-        self.offset = offset
-
-    def apply(self, queryset):
-        return queryset[self.offset : self.offset + self.limit]
-
-    def to_dict(self):
-        return {"type": "pagination", "limit": self.limit, "offset": self.offset}
-
-
-class SearchUsersUseCase:
-    """Use case for searching users with filters and pagination"""
+class SearchUsersUseCase(BaseSearchUseCase[User]):
+    """Use case for searching users - much simpler now!"""
 
     def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+        super().__init__(user_repository)
 
-    async def execute(self, query: SearchUsersQuery) -> SearchUsersResult:
-        """Search users with criteria"""
+    def _add_custom_criteria(
+        self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery
+    ):
+        """Add user-specific search criteria"""
+        # Type cast to access user-specific fields
+        search_query = query if hasattr(query, "status") else None
 
-        # Build criteria
-        criteria_builder = CriteriaBuilder()
+        if search_query is None:
+            return
 
         # Status filter
-        if query.status:
-            status = UserStatus.from_string(query.status)
-            criteria_builder.add(UserStatusCriteria(status))
+        if hasattr(search_query, "status") and search_query.status:
+            criteria_builder.add(CriteriaFactory.status(search_query.status))
 
         # Email verification filter
-        if query.email_verified is not None:
-            criteria_builder.add(EmailVerifiedCriteria(query.email_verified))
-
-        # Date range filter
-        if query.created_after or query.created_before:
+        if (
+            hasattr(search_query, "email_verified")
+            and search_query.email_verified is not None
+        ):
             criteria_builder.add(
-                DateRangeCriteria(
-                    field_name="created_at",
-                    start_date=query.created_after,
-                    end_date=query.created_before,
+                CriteriaFactory.boolean_field(
+                    "email_verified", search_query.email_verified
                 )
             )
 
-        # Get criteria for count (without pagination)
-        count_criteria = criteria_builder.build()
+        # Text search in name and email
+        if hasattr(search_query, "search_text") and search_query.search_text:
+            criteria_builder.add(
+                CriteriaFactory.text_search(
+                    search_query.search_text, ["first_name", "last_name", "email"]
+                )
+            )
 
-        # Add pagination
-        criteria_builder.add(PaginationCriteria(query.limit, query.offset))
-        search_criteria = criteria_builder.build()
-
-        # Execute queries
-        users = await self.user_repository.find_by_criteria(search_criteria)
-        total_count = await self.user_repository.count_by_criteria(count_criteria)
-
-        # Convert to results
-        user_results = [
+    def _convert_entities_to_results(self, users: list[User]) -> list[UserSearchResult]:
+        """Convert domain entities to result objects"""
+        return [
             UserSearchResult(
                 user_id=str(user.id),
                 email=str(user.email),
@@ -142,13 +92,3 @@ class SearchUsersUseCase:
             for user in users
         ]
 
-        # Calculate pagination info
-        has_next = (query.offset + query.limit) < total_count
-        has_previous = query.offset > 0
-
-        return SearchUsersResult(
-            users=user_results,
-            total_count=total_count,
-            has_next=has_next,
-            has_previous=has_previous,
-        )

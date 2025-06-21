@@ -1,31 +1,25 @@
-# src/feature/users/infrastructure/database/repositories.py
-from typing import Optional, List, cast, Union
-from uuid import UUID
+# src/feature/users/infrastructure/database/repositories.py - SIMPLIFIED FIXED
+from typing import Optional, cast, Union
 from datetime import datetime
-
-from asgiref.sync import sync_to_async
-from django.core.exceptions import ObjectDoesNotExist
+from uuid import UUID
 
 from src.core.domain.value_objects.email import Email
-from src.core.domain.repositories.criteria.base_criteria import BaseCriteria
+from src.core.infrastructure.database.repositories import DjangoBaseRepository
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
 from src.feature.users.infrastructure.database.models import UserModel
-
-# Import the password service from core
-from src.core.application.services.password_service import (
-    DjangoPasswordAdapter,
-    create_password_from_hash,
-)
+from src.core.application.services.password_service import create_password_from_hash
 
 
-class DjangoUserRepository(UserRepository):
-    """Django ORM implementation of user repository"""
+class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
+    """Django implementation of user repository - much simpler now!"""
+
+    def __init__(self):
+        super().__init__(UserModel)
 
     def _model_to_entity(self, model: UserModel) -> User:
-        """Converts Django model to domain entity"""
-        # Create password adapter using core service
+        """Convert Django model to domain entity"""
         password = create_password_from_hash(cast(str, model.password))
 
         return User(
@@ -43,7 +37,9 @@ class DjangoUserRepository(UserRepository):
         )
 
     def _entity_to_model_data(self, user: User) -> dict:
-        """Converts domain entity to Django model data"""
+        """Convert domain entity to Django model data"""
+        from src.core.application.services.password_service import DjangoPasswordAdapter
+
         data = {
             "id": user.id,
             "email": str(user.email),
@@ -60,72 +56,29 @@ class DjangoUserRepository(UserRepository):
             "is_superuser": False,
         }
 
-        # Handle password - check if it's Django adapter
+        # Handle password
         if isinstance(user.password, DjangoPasswordAdapter):
             data["password"] = user.password.django_hash
         else:
-            # Fallback for other password types (shouldn't happen normally)
             data["password"] = user.password.hashed_value
 
         return data
 
-    async def save(self, user: User) -> User:
-        """Saves or updates a user"""
-        data = self._entity_to_model_data(user)
-
-        model, _ = await sync_to_async(UserModel.objects.update_or_create)(
-            id=user.id, defaults=data
-        )
-
-        return self._model_to_entity(model)
-
-    async def find_by_id(self, user_id: UUID) -> Optional[User]:
-        """Finds user by ID"""
-        try:
-            model = await sync_to_async(UserModel.objects.get)(id=user_id)
-            return self._model_to_entity(model)
-        except ObjectDoesNotExist:
-            return None
-
+    # Only implement user-specific methods
     async def find_by_email(self, email: Email) -> Optional[User]:
-        """Finds user by email"""
+        """Find user by email"""
         try:
+            from django.core.exceptions import ObjectDoesNotExist
+            from asgiref.sync import sync_to_async
+
             model = await sync_to_async(UserModel.objects.get)(email=str(email))
             return self._model_to_entity(model)
         except ObjectDoesNotExist:
             return None
 
     async def exists_by_email(self, email: Email) -> bool:
-        """Checks if a user exists with the email"""
+        """Check if user exists by email"""
+        from asgiref.sync import sync_to_async
+
         return await sync_to_async(UserModel.objects.filter(email=str(email)).exists)()
 
-    async def find_by_criteria(self, criteria: List[BaseCriteria]) -> List[User]:
-        """Finds users by criteria"""
-        queryset = UserModel.objects.all()
-
-        # Apply criteria
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-
-        models = await sync_to_async(list)(queryset)
-        return [self._model_to_entity(model) for model in models]
-
-    async def delete(self, user_id: UUID) -> bool:
-        """Deletes a user (soft delete)"""
-        try:
-            await sync_to_async(UserModel.objects.filter(id=user_id).update)(
-                status=UserStatus.INACTIVE.value
-            )
-            return True
-        except Exception:
-            return False
-
-    async def count_by_criteria(self, criteria: List[BaseCriteria]) -> int:
-        """Counts users by criteria"""
-        queryset = UserModel.objects.all()
-
-        # Apply criteria
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-
-        return await sync_to_async(queryset.count)()

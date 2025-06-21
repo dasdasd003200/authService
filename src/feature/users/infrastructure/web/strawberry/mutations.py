@@ -1,23 +1,55 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py
-"""
-Strawberry GraphQL mutations for User feature.
-"""
-
+# src/feature/users/infrastructure/web/strawberry/mutations.py - FIXED
 import strawberry
+import asyncio
+from typing import Optional
+from uuid import UUID
 
 from src.core.exceptions.base_exceptions import BaseDomainException
-from src.core.infrastructure.web.strawberry.types import UserStatusEnumStrawberry
 from src.feature.users.application.use_cases.create_user import (
     CreateUserUseCase,
     CreateUserCommand,
 )
+from src.feature.users.application.use_cases.delete_user import DeleteUserUseCase
+from src.core.application.use_cases.base_crud_use_cases import DeleteEntityCommand
 from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
-from .types import CreateUserInput, CreateUserResponse, UserType
+from .types import CreateUserInput, UserType, CreateUserResponse
 
 
-def convert_user_to_type(user_result) -> UserType:
+def handle_async_execution(async_func, *args, **kwargs):
+    """Helper to run async functions in sync context"""
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    return loop.run_until_complete(async_func(*args, **kwargs))
+
+
+def create_success_response(response_class, message: str, data=None):
+    """Create success response"""
+    return response_class(success=True, message=message, error_code=None, data=data)
+
+
+def create_error_response(response_class, error: Exception):
+    """Create error response from exception"""
+    if isinstance(error, BaseDomainException):
+        return response_class(
+            success=False, message=error.message, error_code=error.error_code, data=None
+        )
+    else:
+        return response_class(
+            success=False,
+            message=f"An unexpected error occurred: {str(error)}",
+            error_code="INTERNAL_ERROR",
+            data=None,
+        )
+
+
+def convert_result_to_user_type(result) -> UserType:
     """Convert use case result to GraphQL type"""
-    # Convert status string to enum
+    from src.core.infrastructure.web.strawberry.types import UserStatusEnumStrawberry
+
     status_map = {
         "active": UserStatusEnumStrawberry.ACTIVE,
         "inactive": UserStatusEnumStrawberry.INACTIVE,
@@ -25,22 +57,20 @@ def convert_user_to_type(user_result) -> UserType:
         "pending_verification": UserStatusEnumStrawberry.PENDING_VERIFICATION,
     }
 
-    strawberry_status = status_map.get(
-        user_result.status, UserStatusEnumStrawberry.PENDING_VERIFICATION
-    )
-
     return UserType(
-        id=user_result.user_id,
-        email=user_result.email,
-        first_name=user_result.first_name if hasattr(user_result, "first_name") else "",
-        last_name=user_result.last_name if hasattr(user_result, "last_name") else "",
-        full_name=user_result.full_name,
-        status=strawberry_status,
-        email_verified=user_result.email_verified,
-        last_login=None,  # Not in create result
-        failed_login_attempts=0,  # Default for new user
-        created_at=None,  # Will be set by resolver if needed
-        updated_at=None,  # Will be set by resolver if needed
+        id=result.user_id,
+        email=result.email,
+        first_name=getattr(result, "first_name", ""),
+        last_name=getattr(result, "last_name", ""),
+        full_name=result.full_name,
+        status=status_map.get(
+            result.status, UserStatusEnumStrawberry.PENDING_VERIFICATION
+        ),
+        email_verified=result.email_verified,
+        last_login=None,
+        failed_login_attempts=0,
+        created_at=None,
+        updated_at=None,
     )
 
 
@@ -50,14 +80,12 @@ class UserMutations:
 
     @strawberry.mutation
     def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create a new user - SYNC VERSION!"""
+        """Create a new user"""
 
-        try:
-            # Create the use case
+        async def _create_user():
             repository = DjangoUserRepository()
             use_case = CreateUserUseCase(repository)
 
-            # Create command
             command = CreateUserCommand(
                 email=input.email,
                 password=input.password,
@@ -66,40 +94,35 @@ class UserMutations:
                 email_verified=input.email_verified,
             )
 
-            # Execute use case synchronously
-            import asyncio
+            result = await use_case.execute(command)
+            return convert_result_to_user_type(result)
 
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-            result = loop.run_until_complete(use_case.execute(command))
-
-            # Convert to GraphQL type
-            user_data = convert_user_to_type(result)
-
-            # Return success response
-            return CreateUserResponse(
-                success=True,
-                message="User created successfully",
-                error_code=None,
-                data=user_data,
+        try:
+            user_data = handle_async_execution(_create_user)
+            return create_success_response(
+                CreateUserResponse, "User created successfully", user_data
             )
-
-        except BaseDomainException as e:
-            # Handle domain exceptions
-            return CreateUserResponse(
-                success=False, message=e.message, error_code=e.error_code, data=None
-            )
-
         except Exception as e:
-            # Handle unexpected exceptions
-            return CreateUserResponse(
-                success=False,
-                message=f"An unexpected error occurred: {str(e)}",
-                error_code="INTERNAL_ERROR",
-                data=None,
-            )
+            return create_error_response(CreateUserResponse, e)
 
+    @strawberry.mutation
+    def delete_user(
+        self, user_id: str
+    ) -> CreateUserResponse:  # Usando mismo response type
+        """Delete a user"""
+
+        async def _delete_user():
+            repository = DjangoUserRepository()
+            use_case = DeleteUserUseCase(repository)
+
+            command = DeleteEntityCommand(entity_id=UUID(user_id))
+            return await use_case.execute(command)
+
+        try:
+            success = handle_async_execution(_delete_user)
+            message = (
+                "User deleted successfully" if success else "Failed to delete user"
+            )
+            return create_success_response(CreateUserResponse, message, None)
+        except Exception as e:
+            return create_error_response(CreateUserResponse, e)

@@ -1,19 +1,13 @@
-# src/feature/users/application/use_cases/get_user.py
+# src/feature/users/application/use_cases/get_user.py - SIMPLIFIED
 from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
 
-from src.core.exceptions.base_exceptions import NotFoundError
+from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdUseCase
 from src.core.domain.value_objects.email import Email
+from src.core.exceptions.base_exceptions import NotFoundError
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
-
-
-@dataclass
-class GetUserByIdQuery:
-    """Query for getting user by ID"""
-
-    user_id: UUID
 
 
 @dataclass
@@ -38,25 +32,15 @@ class GetUserResult:
     failed_login_attempts: int = 0
 
 
-class GetUserUseCase:
-    """Use case for retrieving users"""
+class GetUserUseCase(GetEntityByIdUseCase[User]):
+    """Use case for retrieving users - inherits get_by_id functionality"""
 
     def __init__(self, user_repository: UserRepository):
+        super().__init__(user_repository, "User")
         self.user_repository = user_repository
 
-    async def execute_by_id(self, query: GetUserByIdQuery) -> GetUserResult:
-        """Get user by ID"""
-        user = await self.user_repository.find_by_id(query.user_id)
-
-        if not user:
-            raise NotFoundError(
-                f"User with ID {query.user_id} not found", error_code="USER_NOT_FOUND"
-            )
-
-        return self._user_to_result(user)
-
     async def execute_by_email(self, query: GetUserByEmailQuery) -> GetUserResult:
-        """Get user by email"""
+        """Get user by email - only user-specific method"""
         email = Email(query.email)
         user = await self.user_repository.find_by_email(email)
 
@@ -80,3 +64,4 @@ class GetUserUseCase:
             last_login=user.last_login.isoformat() if user.last_login else None,
             failed_login_attempts=user.failed_login_attempts,
         )
+
