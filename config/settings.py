@@ -1,4 +1,4 @@
-# config/settings.py - Updated configuration for AuthService
+# config/settings.py - Updated for Strawberry GraphQL
 from pathlib import Path
 from decouple import config, Csv
 
@@ -17,13 +17,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Third party
-    "graphene_django",
-    # Local apps - FIXED: Use the correct app path
+    # Third party - STRAWBERRY INSTEAD OF GRAPHENE
+    "strawberry.django",
+    # Local apps
     "src.feature.users.infrastructure.web",
-    # Add other features when ready
-    # "src.feature.authentication.infrastructure.web",
-    # "src.feature.sessions.infrastructure.web",
 ]
 
 MIDDLEWARE = [
@@ -100,8 +97,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# GraphQL
-GRAPHENE = {"SCHEMA": "config.schema.schema"}
+# REMOVED: GRAPHENE settings
+# GRAPHENE = {"SCHEMA": "config.schema.schema"}
 
 # JWT Settings
 JWT_SECRET_KEY = config("JWT_SECRET_KEY")

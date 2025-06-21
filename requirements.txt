@@ -5,9 +5,8 @@ djangorestframework==3.15.2
 # Database
 psycopg2-binary==2.9.9
 
-# GraphQL
-graphene-django==3.2.2
-django-graphql-jwt==0.4.0
+# GraphQL - MIGRADO A STRAWBERRY
+strawberry-graphql[django]==0.248.1
 
 # Authentication & Security
 PyJWT==2.9.0
@@ -15,5 +14,5 @@ PyJWT==2.9.0
 # Environment
 python-decouple==3.8
 
-# Development tools (remover en producción)
+# Development tools
 django-extensions==3.2.3
