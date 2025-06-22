@@ -1,4 +1,4 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - CORREGIDO SIN HASHING
+# src/feature/users/infrastructure/web/strawberry/mutations.py - USANDO INPUT PROCESSORS
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserUseCase, CreateUserCommand
@@ -9,7 +9,9 @@ from src.feature.users.infrastructure.database.repositories import DjangoUserRep
 from src.core.infrastructure.web.strawberry.helpers import (
     execute_use_case,
     validate_uuid,
-    create_success_response,
+    process_create_user_input,
+    process_update_user_input,
+    process_change_password_input,
     create_error_response,
 )
 from .types import CreateUserInput, CreateUserResponse, UpdateUserInput, UpdateUserResponse, ChangePasswordInput, DeleteUserResponse, UserType
@@ -18,21 +20,24 @@ from .converters import convert_create_result_to_user_type, convert_result_to_ty
 
 @strawberry.type
 class UserMutations:
-    """User mutations - usando Django password management"""
+    """User mutations - Con validación centralizada"""
 
     @strawberry.mutation
     async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create user - Django handles password hashing"""
+        """Create user - Validación centralizada"""
         try:
+            # ✅ Validación centralizada en un solo lugar
+            validated_data = process_create_user_input(input)
+
             repository = DjangoUserRepository()
             use_case = CreateUserUseCase(repository)
 
             command = CreateUserCommand(
-                email=input.email,
-                password=input.password,  # Plain password - Django will hash it
-                first_name=input.first_name,
-                last_name=input.last_name,
-                email_verified=input.email_verified,
+                email=validated_data["email"],
+                password=validated_data["password"],
+                first_name=validated_data["first_name"],
+                last_name=validated_data["last_name"],
+                email_verified=validated_data["email_verified"],
             )
 
             async def _execute():
@@ -46,17 +51,18 @@ class UserMutations:
 
     @strawberry.mutation
     async def update_user(self, input: UpdateUserInput) -> UpdateUserResponse:
-        """Update user profile"""
+        """Update user profile - Validación centralizada"""
         try:
-            user_id = validate_uuid(input.user_id, "User ID")
+            # ✅ Validación centralizada en un solo lugar
+            validated_data = process_update_user_input(input)
 
             repository = DjangoUserRepository()
             use_case = UpdateUserUseCase(repository)
 
             command = UpdateUserCommand(
-                user_id=user_id,
-                first_name=input.first_name,
-                last_name=input.last_name,
+                user_id=validated_data["user_id"],
+                first_name=validated_data.get("first_name"),
+                last_name=validated_data.get("last_name"),
             )
 
             async def _execute():
@@ -70,16 +76,17 @@ class UserMutations:
 
     @strawberry.mutation
     async def change_password(self, input: ChangePasswordInput) -> DeleteUserResponse:
-        """Change user password - Django handles validation and hashing"""
+        """Change user password - Validación centralizada"""
         try:
-            user_id = validate_uuid(input.user_id, "User ID")
+            # ✅ Validación centralizada en un solo lugar
+            validated_data = process_change_password_input(input)
 
             repository = DjangoUserRepository()
             use_case = UpdateUserUseCase(repository)
 
             command = ChangePasswordCommand(
-                user_id=user_id,
-                new_password=input.new_password,  # Plain password - Django will hash it
+                user_id=validated_data["user_id"],
+                new_password=validated_data["new_password"],
             )
 
             async def _execute():
@@ -92,8 +99,9 @@ class UserMutations:
 
     @strawberry.mutation
     async def delete_user(self, user_id: str) -> DeleteUserResponse:
-        """Delete user"""
+        """Delete user - Validación simple para single parameter"""
         try:
+            # ✅ Validación simple para parámetro único
             entity_id = validate_uuid(user_id, "User ID")
 
             repository = DjangoUserRepository()

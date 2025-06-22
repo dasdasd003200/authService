@@ -1,46 +1,62 @@
-# src/feature/users/infrastructure/web/strawberry/queries.py - ASYNC NATIVO
+# src/feature/users/infrastructure/web/strawberry/queries.py - SIMPLIFICADAS
 import strawberry
-from typing import Optional
-from uuid import UUID
 
 from src.feature.users.application.use_cases.get_user import GetUserUseCase, GetUserByEmailQuery
 from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdQuery
 from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
-from .types import UserType
+
+from src.core.infrastructure.web.strawberry.helpers import (
+    execute_use_case,
+    validate_uuid,
+    validate_email_format,
+    create_error_response,
+)
+
+from .types import GetUserResponse, GetUserByEmailResponse
 from .converters import convert_user_to_type, convert_result_to_type
 
 
 @strawberry.type
 class UserQueries:
-    """User queries - ASYNC NATIVO"""
+    """User queries - Validación simplificada con helpers centralizados"""
 
     @strawberry.field
-    async def user_by_id(self, user_id: str) -> Optional[UserType]:
-        """Get user by ID - ASYNC NATIVO"""
+    async def user_by_id(self, user_id: str) -> GetUserResponse:
+        """Get user by ID"""
         try:
+            # ✅ Validación simple con helper centralizado
+            entity_id = validate_uuid(user_id, "User ID")
+
             repository = DjangoUserRepository()
             use_case = GetUserUseCase(repository)
-            query = GetEntityByIdQuery(entity_id=UUID(user_id))
+            query = GetEntityByIdQuery(entity_id=entity_id)
 
-            # ASYNC NATIVO - sin loop.run_until_complete()
-            user = await use_case.execute(query)
-            return convert_user_to_type(user) if user else None
+            async def _execute():
+                user = await use_case.execute(query)
+                return convert_user_to_type(user) if user else None
 
-        except Exception:
-            return None
+            return await execute_use_case(_execute, GetUserResponse, "User retrieved successfully")
+
+        except Exception as e:
+            return create_error_response(GetUserResponse, e)
 
     @strawberry.field
-    async def user_by_email(self, email: str) -> Optional[UserType]:
-        """Get user by email - ASYNC NATIVO"""
+    async def user_by_email(self, email: str) -> GetUserByEmailResponse:
+        """Get user by email"""
         try:
+            # ✅ Validación simple con helper centralizado
+            clean_email = validate_email_format(email)
+
             repository = DjangoUserRepository()
             use_case = GetUserUseCase(repository)
-            query = GetUserByEmailQuery(email=email)
+            query = GetUserByEmailQuery(email=clean_email)
 
-            # ASYNC NATIVO - sin loop.run_until_complete()
-            result = await use_case.execute_by_email(query)
-            return convert_result_to_type(result)
+            async def _execute():
+                result = await use_case.execute_by_email(query)
+                return convert_result_to_type(result)
 
-        except Exception:
-            return None
+            return await execute_use_case(_execute, GetUserByEmailResponse, "User retrieved successfully")
+
+        except Exception as e:
+            return create_error_response(GetUserByEmailResponse, e)
 

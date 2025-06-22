@@ -1,4 +1,4 @@
-# src/feature/users/infrastructure/web/strawberry/types.py - AGREGADO ChangePasswordInput
+# src/feature/users/infrastructure/web/strawberry/types.py - AGREGADO Response Types para Queries
 """
 Strawberry GraphQL types for User feature - USANDO CORE TYPES
 """
@@ -66,8 +66,13 @@ class ChangePasswordInput:
     new_password: str = strawberry.field(description="New password (will be hashed by Django)")
 
 
-# USAR FACTORY EN LUGAR DE CREAR MANUALMENTE
+# ===== MUTATION RESPONSES (YA EXISTÍAN) =====
 CreateUserResponse = create_mutation_response(UserType, "CreateUserResponse")
 UpdateUserResponse = create_mutation_response(UserType, "UpdateUserResponse")
 DeleteUserResponse = create_simple_response("DeleteUserResponse")
 UsersPaginatedResponse = create_paginated_response(UserType, "UsersPaginatedResponse")
+
+# ===== NUEVOS: QUERY RESPONSES =====
+GetUserResponse = create_mutation_response(UserType, "GetUserResponse")
+GetUserByEmailResponse = create_mutation_response(UserType, "GetUserByEmailResponse")
+
