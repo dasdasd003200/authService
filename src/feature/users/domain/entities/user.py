@@ -1,4 +1,4 @@
-# src/feature/users/domain/entities/user.py
+# src/feature/users/domain/entities/user.py - IMPORTS CORREGIDOS
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
@@ -6,16 +6,18 @@ from uuid import UUID
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.value_objects.email import Email
 from src.feature.users.domain.value_objects.user_status import UserStatus
-from src.feature.users.domain.value_objects.password import Password
+
+# IMPORT CORREGIDO - Desde infrastructure/security
+from src.core.infrastructure.security.password_service import DomainPassword
 
 
 class User(BaseEntity):
-    """Entidad User del dominio"""
+    """User domain entity"""
 
     def __init__(
         self,
         email: Email,
-        password: Password,
+        password: DomainPassword,
         first_name: str,
         last_name: str,
         status: UserStatus = UserStatus.ACTIVE,
@@ -39,71 +41,73 @@ class User(BaseEntity):
         self._validate()
 
     def _validate(self):
-        """Validar integridad de la entidad"""
+        """Validate entity integrity"""
         if not self.first_name:
-            raise ValueError("First name es requerido")
+            raise ValueError("First name is required")
         if not self.last_name:
-            raise ValueError("Last name es requerido")
+            raise ValueError("Last name is required")
         if len(self.first_name) > 50:
-            raise ValueError("First name muy largo")
+            raise ValueError("First name too long")
         if len(self.last_name) > 50:
-            raise ValueError("Last name muy largo")
+            raise ValueError("Last name too long")
 
     @property
     def full_name(self) -> str:
-        """Nombre completo del usuario"""
+        """User's full name"""
         return f"{self.first_name} {self.last_name}"
 
     @property
     def is_active(self) -> bool:
-        """Verifica si el usuario está activo"""
+        """Check if user is active"""
         return self.status == UserStatus.ACTIVE
 
     @property
     def is_locked(self) -> bool:
-        """Verifica si el usuario está bloqueado"""
+        """Check if user is locked"""
         return self.failed_login_attempts >= 5
 
+    def verify_password(self, plain_password: str) -> bool:
+        """Verify password - MÉTODO AGREGADO"""
+        return self.password.verify(plain_password)
+
     def deactivate(self):
-        """Desactiva el usuario"""
+        """Deactivate user"""
         self.status = UserStatus.INACTIVE
         self.update_timestamp()
 
     def activate(self):
-        """Activa el usuario"""
+        """Activate user"""
         self.status = UserStatus.ACTIVE
         self.update_timestamp()
 
     def verify_email(self):
-        """Marca el email como verificado"""
+        """Mark email as verified"""
         self.email_verified = True
         self.update_timestamp()
 
     def record_login_success(self):
-        """Registra un login exitoso"""
+        """Record successful login"""
         self.last_login = datetime.now(timezone.utc)
         self.failed_login_attempts = 0
         self.update_timestamp()
 
     def record_login_failure(self):
-        """Registra un intento de login fallido"""
+        """Record failed login attempt"""
         self.failed_login_attempts += 1
         self.update_timestamp()
 
     def reset_failed_attempts(self):
-        """Resetea los intentos fallidos"""
+        """Reset failed attempts"""
         self.failed_login_attempts = 0
         self.update_timestamp()
 
-    def change_password(self, new_password: Password):
-        """Cambia la contraseña del usuario"""
+    def change_password(self, new_password: DomainPassword):
+        """Change user password"""
         self.password = new_password
         self.update_timestamp()
 
-    def update_profile(
-        self, first_name: Optional[str] = None, last_name: Optional[str] = None
-    ):
-        """Actualiza el perfil del usuario"""
+    def update_profile(self, first_name: Optional[str] = None, last_name: Optional[str] = None):
+        """Update user profile"""
         if first_name:
             self.first_name = first_name.strip()
         if last_name:

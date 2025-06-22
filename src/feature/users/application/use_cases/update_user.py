@@ -1,13 +1,13 @@
-# src/feature/users/application/use_cases/update_user.py
+# src/feature/users/application/use_cases/update_user.py - FIXED
 from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
 
 from src.core.exceptions.base_exceptions import NotFoundError, ValidationException
-
-# from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.value_objects.password import Password
+
+# USAR PASSWORD DEL CORE
+from src.core.infrastructure.security.password_service import create_password
 
 
 @dataclass
@@ -48,15 +48,11 @@ class UpdateUserUseCase:
 
     async def execute_profile_update(self, command: UpdateUserCommand) -> UpdateUserResult:
         """Update user profile information"""
-        # Find user
         user = await self.user_repository.find_by_id(command.user_id)
         if not user:
             raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
-        # Update profile
         user.update_profile(first_name=command.first_name, last_name=command.last_name)
-
-        # Save changes
         updated_user = await self.user_repository.save(user)
 
         return UpdateUserResult(
@@ -71,23 +67,16 @@ class UpdateUserUseCase:
 
     async def execute_password_change(self, command: ChangePasswordCommand) -> bool:
         """Change user password"""
-        # Find user
         user = await self.user_repository.find_by_id(command.user_id)
         if not user:
             raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
         try:
-            # Create new password
-            new_password = Password.create(command.new_password)
-
-            # Change password
+            # USAR PASSWORD DEL CORE
+            new_password = create_password(command.new_password)
             user.change_password(new_password)
-
-            # Save changes
             await self.user_repository.save(user)
-
             return True
-
         except ValueError as e:
             raise ValidationException(str(e), error_code="INVALID_PASSWORD")
 
@@ -100,15 +89,10 @@ class DeactivateUserUseCase:
 
     async def execute(self, user_id: UUID) -> bool:
         """Deactivate user"""
-        # Find user
         user = await self.user_repository.find_by_id(user_id)
         if not user:
             raise NotFoundError(f"User with ID {user_id} not found", error_code="USER_NOT_FOUND")
 
-        # Deactivate
         user.deactivate()
-
-        # Save changes
         await self.user_repository.save(user)
-
         return True

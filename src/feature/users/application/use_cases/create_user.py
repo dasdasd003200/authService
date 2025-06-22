@@ -1,4 +1,4 @@
-# src/feature/users/application/use_cases/create_user.py
+# src/feature/users/application/use_cases/create_user.py - SIMPLIFIED
 from dataclasses import dataclass
 
 from src.core.domain.value_objects.email import Email
@@ -6,9 +6,7 @@ from src.core.exceptions.base_exceptions import ConflictError
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
-
-# Import password service from core
-from src.core.application.services.password_service import create_password_from_plain
+from src.core.infrastructure.security.password_service import create_password
 
 
 @dataclass
@@ -34,20 +32,18 @@ class CreateUserResult:
 
 
 class CreateUserUseCase:
-    """Use case for creating a new user"""
+    """Use case for creating users"""
 
     def __init__(self, user_repository: UserRepository):
         self.user_repository = user_repository
 
     async def execute(self, command: CreateUserCommand) -> CreateUserResult:
-        """Executes user creation"""
-
+        """Execute user creation"""
         # Create value objects
         email = Email(command.email)
-        # Use core password service
-        password = create_password_from_plain(command.password)
+        password = create_password(command.password)  # Uses simplified service
 
-        # Check that user doesn't exist
+        # Check conflicts
         if await self.user_repository.exists_by_email(email):
             raise ConflictError(
                 f"User with email {email} already exists",
@@ -60,13 +56,11 @@ class CreateUserUseCase:
             password=password,
             first_name=command.first_name,
             last_name=command.last_name,
-            status=UserStatus.PENDING_VERIFICATION
-            if not command.email_verified
-            else UserStatus.ACTIVE,
+            status=UserStatus.PENDING_VERIFICATION if not command.email_verified else UserStatus.ACTIVE,
             email_verified=command.email_verified,
         )
 
-        # Save in repository
+        # Save
         saved_user = await self.user_repository.save(user)
 
         # Return result
