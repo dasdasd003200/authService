@@ -6,8 +6,8 @@ from uuid import UUID
 from src.core.exceptions.base_exceptions import NotFoundError, ValidationException
 from src.feature.users.domain.repositories.user_repository import UserRepository
 
-# USAR PASSWORD DEL CORE
-from src.core.infrastructure.security.password_service import create_password
+# CORREGIDO: Usar el core service simplificado (ya no create_password)
+from src.core.infrastructure.security.password_service import validate_password_strength
 
 
 @dataclass
@@ -72,9 +72,13 @@ class UpdateUserUseCase:
             raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
         try:
-            # USAR PASSWORD DEL CORE
-            new_password = create_password(command.new_password)
-            user.change_password(new_password)
+            # CORREGIDO: Validar antes de cambiar (opcional)
+            errors = validate_password_strength(command.new_password)
+            if errors:
+                raise ValidationException("; ".join(errors), error_code="INVALID_PASSWORD")
+
+            # SIMPLIFICADO: change_password ahora maneja todo internamente
+            user.change_password(command.new_password)
             await self.user_repository.save(user)
             return True
         except ValueError as e:
@@ -96,3 +100,4 @@ class DeactivateUserUseCase:
         user.deactivate()
         await self.user_repository.save(user)
         return True
+

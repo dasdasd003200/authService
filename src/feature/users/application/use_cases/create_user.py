@@ -1,4 +1,4 @@
-# src/feature/users/application/use_cases/create_user.py - SIMPLIFIED
+# src/feature/users/application/use_cases/create_user.py - SIMPLIFICADO
 from dataclasses import dataclass
 
 from src.core.domain.value_objects.email import Email
@@ -6,7 +6,9 @@ from src.core.exceptions.base_exceptions import ConflictError
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
-from src.core.infrastructure.security.password_service import create_password
+
+# CORREGIDO: Usar el core service simplificado
+from src.core.infrastructure.security.password_service import hash_password
 
 
 @dataclass
@@ -41,7 +43,7 @@ class CreateUserUseCase:
         """Execute user creation"""
         # Create value objects
         email = Email(command.email)
-        password = create_password(command.password)  # Uses simplified service
+        password_hash = hash_password(command.password)  # SIMPLIFICADO: usa core service
 
         # Check conflicts
         if await self.user_repository.exists_by_email(email):
@@ -53,7 +55,7 @@ class CreateUserUseCase:
         # Create entity
         user = User(
             email=email,
-            password=password,
+            password_hash=password_hash,  # CAMBIADO: pasa el hash directamente
             first_name=command.first_name,
             last_name=command.last_name,
             status=UserStatus.PENDING_VERIFICATION if not command.email_verified else UserStatus.ACTIVE,
@@ -71,3 +73,4 @@ class CreateUserUseCase:
             status=saved_user.status.value,
             email_verified=saved_user.email_verified,
         )
+

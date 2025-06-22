@@ -1,51 +1,68 @@
-# src/core/application/services/password_service.py - SIMPLIFIED FINAL
+# src/core/infrastructure/security/password_service.py - SIMPLIFICADO
 """
-Simple password service - SOLO LO NECESARIO
+Password service using ONLY Django's built-in facilities.
+No custom classes, just simple functions.
 """
 
 from django.contrib.auth.hashers import make_password, check_password
 
 
-class DomainPassword:
-    """Simple domain password that works with Django"""
+def hash_password(plain_password: str) -> str:
+    """
+    Hash a plain password using Django's system.
 
-    def __init__(self, hashed_value: str):
-        self.hashed_value = hashed_value
+    Args:
+        plain_password: The plain text password
 
-    @classmethod
-    def create_from_plain(cls, plain_password: str) -> "DomainPassword":
-        """Create password from plain text with validation"""
-        # Simple validation
-        if len(plain_password) < 8:
-            raise ValueError("Password must be at least 8 characters")
+    Returns:
+        The hashed password string
 
-        # Hash with Django
-        hashed = make_password(plain_password)
-        return cls(hashed)
+    Raises:
+        ValueError: If password is too short or invalid
+    """
+    # Basic validation
+    if not plain_password or len(plain_password.strip()) < 8:
+        raise ValueError("Password must be at least 8 characters")
 
-    @classmethod
-    def from_hash(cls, hashed_value: str) -> "DomainPassword":
-        """Create from existing hash"""
-        return cls(hashed_value)
-
-    def verify(self, plain_password: str) -> bool:
-        """Verify password"""
-        return check_password(plain_password, self.hashed_value)
-
-    @property
-    def hash(self) -> str:
-        """Get hash for storage"""
-        return self.hashed_value
-
-    def __str__(self) -> str:
-        return "[PROTECTED]"
+    # Use Django's make_password (handles salt automatically)
+    return make_password(plain_password.strip())
 
 
-# Factory functions
-def create_password(plain_password: str) -> DomainPassword:
-    return DomainPassword.create_from_plain(plain_password)
+def verify_password(plain_password: str, password_hash: str) -> bool:
+    """
+    Verify a plain password against a hash using Django's system.
+
+    Args:
+        plain_password: The plain text password to verify
+        password_hash: The stored hash to check against
+
+    Returns:
+        True if password matches, False otherwise
+    """
+    if not plain_password or not password_hash:
+        return False
+
+    return check_password(plain_password, password_hash)
 
 
-def load_password(hashed_value: str) -> DomainPassword:
-    return DomainPassword.from_hash(hashed_value)
+# Optional: Password strength validation
+def validate_password_strength(password: str) -> list[str]:
+    """
+    Validate password strength and return list of issues.
+
+    Returns:
+        Empty list if valid, list of error messages if invalid
+    """
+    errors = []
+
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters")
+
+    if password.isdigit():
+        errors.append("Password cannot be only numbers")
+
+    if password.lower() in ["password", "12345678", "qwerty"]:
+        errors.append("Password is too common")
+
+    return errors
 
