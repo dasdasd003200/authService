@@ -1,14 +1,13 @@
-# src/feature/users/application/use_cases/create_user.py - ARREGLADO
+# src/feature/users/application/use_cases/create_user.py - CORREGIDO SIN HASHING
 from dataclasses import dataclass
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from src.core.domain.value_objects.email import Email
-from src.core.exceptions.base_exceptions import ConflictError
+from src.core.exceptions.base_exceptions import ConflictError, ValidationException
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.value_objects.user_status import UserStatus
-
-# CORREGIDO: Usar el core service simplificado
-from src.core.infrastructure.security.password_service import hash_password
 
 
 @dataclass
@@ -24,12 +23,12 @@ class CreateUserCommand:
 
 @dataclass
 class CreateUserResult:
-    """Result of creating user - ARREGLADO: agregar first_name y last_name"""
+    """Result of creating user"""
 
     user_id: str
     email: str
-    first_name: str  # AGREGADO
-    last_name: str  # AGREGADO
+    first_name: str
+    last_name: str
     full_name: str
     status: str
     email_verified: bool
@@ -43,9 +42,14 @@ class CreateUserUseCase:
 
     async def execute(self, command: CreateUserCommand) -> CreateUserResult:
         """Execute user creation"""
+        # Validate password using Django's validation
+        try:
+            validate_password(command.password)
+        except ValidationError as e:
+            raise ValidationException("; ".join(e.messages), error_code="INVALID_PASSWORD")
+
         # Create value objects
         email = Email(command.email)
-        password_hash = hash_password(command.password)
 
         # Check conflicts
         if await self.user_repository.exists_by_email(email):
@@ -54,25 +58,24 @@ class CreateUserUseCase:
                 error_code="USER_ALREADY_EXISTS",
             )
 
-        # Create entity
+        # Create entity WITHOUT password
         user = User(
             email=email,
-            password_hash=password_hash,
             first_name=command.first_name,
             last_name=command.last_name,
             status=UserStatus.PENDING_VERIFICATION if not command.email_verified else UserStatus.ACTIVE,
             email_verified=command.email_verified,
         )
 
-        # Save
-        saved_user = await self.user_repository.save(user)
+        # Save with password - Repository handles Django password hashing
+        saved_user = await self.user_repository.save_with_password(user, command.password)
 
-        # Return result - ARREGLADO: incluir todos los campos
+        # Return result
         return CreateUserResult(
             user_id=str(saved_user.id),
             email=str(saved_user.email),
-            first_name=saved_user.first_name,  # ARREGLADO
-            last_name=saved_user.last_name,  # ARREGLADO
+            first_name=saved_user.first_name,
+            last_name=saved_user.last_name,
             full_name=saved_user.full_name,
             status=saved_user.status.value,
             email_verified=saved_user.email_verified,

@@ -1,13 +1,12 @@
-# src/feature/users/application/use_cases/update_user.py - FIXED
+# src/feature/users/application/use_cases/update_user.py - CORREGIDO SIN HASHING
 from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from src.core.exceptions.base_exceptions import NotFoundError, ValidationException
 from src.feature.users.domain.repositories.user_repository import UserRepository
-
-# CORREGIDO: Usar el core service simplificado (ya no create_password)
-from src.core.infrastructure.security.password_service import validate_password_strength
 
 
 @dataclass
@@ -66,23 +65,20 @@ class UpdateUserUseCase:
         )
 
     async def execute_password_change(self, command: ChangePasswordCommand) -> bool:
-        """Change user password"""
+        """Change user password using Django's validation and hashing"""
         user = await self.user_repository.find_by_id(command.user_id)
         if not user:
             raise NotFoundError(f"User with ID {command.user_id} not found", error_code="USER_NOT_FOUND")
 
         try:
-            # CORREGIDO: Validar antes de cambiar (opcional)
-            errors = validate_password_strength(command.new_password)
-            if errors:
-                raise ValidationException("; ".join(errors), error_code="INVALID_PASSWORD")
+            # Validate password using Django's validation
+            validate_password(command.new_password)
 
-            # SIMPLIFICADO: change_password ahora maneja todo internamente
-            user.change_password(command.new_password)
-            await self.user_repository.save(user)
-            return True
-        except ValueError as e:
-            raise ValidationException(str(e), error_code="INVALID_PASSWORD")
+            # Repository handles Django password change
+            return await self.user_repository.change_password(command.user_id, command.new_password)
+
+        except ValidationError as e:
+            raise ValidationException("; ".join(e.messages), error_code="INVALID_PASSWORD")
 
 
 class DeactivateUserUseCase:

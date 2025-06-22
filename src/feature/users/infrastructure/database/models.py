@@ -12,9 +12,7 @@ from django.contrib.auth.models import (
 class UserManager(BaseUserManager):
     """Custom manager for User model"""
 
-    def create_user(
-        self, email: str, password: Optional[str] = None, **extra_fields: Any
-    ) -> "UserModel":
+    def create_user(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> "UserModel":
         if not email:
             raise ValueError("Email is required")
 
@@ -25,9 +23,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(
-        self, email: str, password: Optional[str] = None, **extra_fields: Any
-    ) -> "UserModel":
+    def create_superuser(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> "UserModel":
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("status", UserModel.StatusChoices.ACTIVE)
@@ -64,9 +60,7 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         verbose_name="Status",
     )
     email_verified = models.BooleanField(default=False, verbose_name="Email Verified")
-    failed_login_attempts = models.PositiveIntegerField(
-        default=0, verbose_name="Failed Login Attempts"
-    )
+    failed_login_attempts = models.PositiveIntegerField(default=0, verbose_name="Failed Login Attempts")
     last_login = models.DateTimeField(null=True, blank=True, verbose_name="Last Login")
 
     # Django admin fields

@@ -1,4 +1,4 @@
-# src/feature/users/infrastructure/web/strawberry/types.py - ACTUALIZADO CON CORE
+# src/feature/users/infrastructure/web/strawberry/types.py - AGREGADO ChangePasswordInput
 """
 Strawberry GraphQL types for User feature - USANDO CORE TYPES
 """
@@ -43,7 +43,7 @@ class CreateUserInput:
     """Input for creating user"""
 
     email: str = strawberry.field(description="User email")
-    password: str = strawberry.field(description="User password")
+    password: str = strawberry.field(description="User password (will be hashed by Django)")
     first_name: str = strawberry.field(description="User first name")
     last_name: str = strawberry.field(description="User last name")
     email_verified: bool = strawberry.field(default=False, description="Email verified")
@@ -63,7 +63,7 @@ class ChangePasswordInput:
     """Input for changing password"""
 
     user_id: str = strawberry.field(description="User ID")
-    new_password: str = strawberry.field(description="New password")
+    new_password: str = strawberry.field(description="New password (will be hashed by Django)")
 
 
 # USAR FACTORY EN LUGAR DE CREAR MANUALMENTE
@@ -71,4 +71,3 @@ CreateUserResponse = create_mutation_response(UserType, "CreateUserResponse")
 UpdateUserResponse = create_mutation_response(UserType, "UpdateUserResponse")
 DeleteUserResponse = create_simple_response("DeleteUserResponse")
 UsersPaginatedResponse = create_paginated_response(UserType, "UsersPaginatedResponse")
-
