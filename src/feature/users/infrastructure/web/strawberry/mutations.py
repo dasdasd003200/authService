@@ -1,37 +1,40 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - REFACTORIZADO
+# src/feature/users/infrastructure/web/strawberry/mutations.py - ACTUALIZADO
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserCommand
 from src.feature.users.application.use_cases.update_user import UpdateUserCommand, ChangePasswordCommand
 from src.core.application.use_cases.base_crud_use_cases import DeleteEntityCommand
 
-# ✅ NUEVO: Import del container
 from src.core.infrastructure.containers.django_setup import get_user_container
 
-from src.core.infrastructure.web.strawberry.helpers import (
+# OPCIÓN 1: Imports específicos por módulo (RECOMENDADO)
+from src.core.infrastructure.web.strawberry.helpers.execution import (
     execute_use_case,
-    validate_uuid,
+    create_error_response,
+)
+from src.core.infrastructure.web.strawberry.helpers.validators import validate_uuid
+from src.core.infrastructure.web.strawberry.helpers.processors import (
     process_create_user_input,
     process_update_user_input,
     process_change_password_input,
-    create_error_response,
 )
+
 from .types import CreateUserInput, CreateUserResponse, UpdateUserInput, UpdateUserResponse, ChangePasswordInput, DeleteUserResponse
 from .converters import convert_create_result_to_user_type, convert_result_to_type
 
 
 @strawberry.type
 class UserMutations:
-    """User mutations - Con Dependency Injection"""
+    """User mutations - Con Dependency Injection y helpers modulares"""
 
     @strawberry.mutation
     async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create user - REFACTORIZADO con DI"""
+        """Create user - REFACTORIZADO con helpers modulares"""
         try:
             # Validación centralizada
             validated_data = process_create_user_input(input)
 
-            # ✅ NUEVO: Usar container en lugar de instanciar directamente
+            # Usar container en lugar de instanciar directamente
             container = get_user_container()
             use_case = container.get_create_user_use_case()
 
@@ -54,11 +57,10 @@ class UserMutations:
 
     @strawberry.mutation
     async def update_user(self, input: UpdateUserInput) -> UpdateUserResponse:
-        """Update user profile - REFACTORIZADO con DI"""
+        """Update user profile - REFACTORIZADO con helpers modulares"""
         try:
             validated_data = process_update_user_input(input)
 
-            # ✅ NUEVO: Usar container
             container = get_user_container()
             use_case = container.get_update_user_use_case()
 
@@ -79,11 +81,10 @@ class UserMutations:
 
     @strawberry.mutation
     async def change_password(self, input: ChangePasswordInput) -> DeleteUserResponse:
-        """Change user password - REFACTORIZADO con DI"""
+        """Change user password - REFACTORIZADO con helpers modulares"""
         try:
             validated_data = process_change_password_input(input)
 
-            # ✅ NUEVO: Usar container
             container = get_user_container()
             use_case = container.get_update_user_use_case()
 
@@ -102,11 +103,10 @@ class UserMutations:
 
     @strawberry.mutation
     async def delete_user(self, user_id: str) -> DeleteUserResponse:
-        """Delete user - REFACTORIZADO con DI"""
+        """Delete user - REFACTORIZADO con helpers modulares"""
         try:
             entity_id = validate_uuid(user_id, "User ID")
 
-            # ✅ NUEVO: Usar container
             container = get_user_container()
             use_case = container.get_delete_user_use_case()
 

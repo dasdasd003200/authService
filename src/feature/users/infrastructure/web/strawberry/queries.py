@@ -1,17 +1,18 @@
-# src/feature/users/infrastructure/web/strawberry/queries.py - REFACTORIZADO
+# src/feature/users/infrastructure/web/strawberry/queries.py - ACTUALIZADO
 import strawberry
 
 from src.feature.users.application.use_cases.get_user import GetUserByEmailQuery
 from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdQuery
 
-# ✅ NUEVO: Import del container
 from src.core.infrastructure.containers.django_setup import get_user_container
 
-from src.core.infrastructure.web.strawberry.helpers import (
+from src.core.infrastructure.web.strawberry.helpers.execution import (
     execute_use_case,
+    create_error_response,
+)
+from src.core.infrastructure.web.strawberry.helpers.validators import (
     validate_uuid,
     validate_email_format,
-    create_error_response,
 )
 
 from .types import GetUserResponse, GetUserByEmailResponse
@@ -20,15 +21,14 @@ from .converters import convert_user_to_type, convert_result_to_type
 
 @strawberry.type
 class UserQueries:
-    """User queries - REFACTORIZADO con Dependency Injection"""
+    """User queries - REFACTORIZADO con Dependency Injection y helpers modulares"""
 
     @strawberry.field
     async def user_by_id(self, user_id: str) -> GetUserResponse:
-        """Get user by ID - REFACTORIZADO con DI"""
+        """Get user by ID - REFACTORIZADO con helpers modulares"""
         try:
             entity_id = validate_uuid(user_id, "User ID")
 
-            # ✅ NUEVO: Usar container
             container = get_user_container()
             use_case = container.get_get_user_use_case()
 
@@ -45,11 +45,10 @@ class UserQueries:
 
     @strawberry.field
     async def user_by_email(self, email: str) -> GetUserByEmailResponse:
-        """Get user by email - REFACTORIZADO con DI"""
+        """Get user by email - REFACTORIZADO con helpers modulares"""
         try:
             clean_email = validate_email_format(email)
 
-            # ✅ NUEVO: Usar container
             container = get_user_container()
             use_case = container.get_get_user_use_case()
 
