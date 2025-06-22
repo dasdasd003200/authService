@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "config.apps.CoreConfig",
     # Third party - STRAWBERRY INSTEAD OF GRAPHENE
     "strawberry.django",
     # Local apps
@@ -106,4 +107,3 @@ JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
 
 print(f"AuthService - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
-

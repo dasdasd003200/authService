@@ -1,10 +1,12 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - USANDO INPUT PROCESSORS
+# src/feature/users/infrastructure/web/strawberry/mutations.py - REFACTORIZADO
 import strawberry
 
-from src.feature.users.application.use_cases.create_user import CreateUserUseCase, CreateUserCommand
-from src.feature.users.application.use_cases.update_user import UpdateUserUseCase, UpdateUserCommand, ChangePasswordCommand
-from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase, DeleteEntityCommand
-from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
+from src.feature.users.application.use_cases.create_user import CreateUserCommand
+from src.feature.users.application.use_cases.update_user import UpdateUserCommand, ChangePasswordCommand
+from src.core.application.use_cases.base_crud_use_cases import DeleteEntityCommand
+
+# ✅ NUEVO: Import del container
+from src.core.infrastructure.containers.django_setup import get_user_container
 
 from src.core.infrastructure.web.strawberry.helpers import (
     execute_use_case,
@@ -14,23 +16,24 @@ from src.core.infrastructure.web.strawberry.helpers import (
     process_change_password_input,
     create_error_response,
 )
-from .types import CreateUserInput, CreateUserResponse, UpdateUserInput, UpdateUserResponse, ChangePasswordInput, DeleteUserResponse, UserType
+from .types import CreateUserInput, CreateUserResponse, UpdateUserInput, UpdateUserResponse, ChangePasswordInput, DeleteUserResponse
 from .converters import convert_create_result_to_user_type, convert_result_to_type
 
 
 @strawberry.type
 class UserMutations:
-    """User mutations - Con validación centralizada"""
+    """User mutations - Con Dependency Injection"""
 
     @strawberry.mutation
     async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create user - Validación centralizada"""
+        """Create user - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación centralizada en un solo lugar
+            # Validación centralizada
             validated_data = process_create_user_input(input)
 
-            repository = DjangoUserRepository()
-            use_case = CreateUserUseCase(repository)
+            # ✅ NUEVO: Usar container en lugar de instanciar directamente
+            container = get_user_container()
+            use_case = container.get_create_user_use_case()
 
             command = CreateUserCommand(
                 email=validated_data["email"],
@@ -51,13 +54,13 @@ class UserMutations:
 
     @strawberry.mutation
     async def update_user(self, input: UpdateUserInput) -> UpdateUserResponse:
-        """Update user profile - Validación centralizada"""
+        """Update user profile - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación centralizada en un solo lugar
             validated_data = process_update_user_input(input)
 
-            repository = DjangoUserRepository()
-            use_case = UpdateUserUseCase(repository)
+            # ✅ NUEVO: Usar container
+            container = get_user_container()
+            use_case = container.get_update_user_use_case()
 
             command = UpdateUserCommand(
                 user_id=validated_data["user_id"],
@@ -76,13 +79,13 @@ class UserMutations:
 
     @strawberry.mutation
     async def change_password(self, input: ChangePasswordInput) -> DeleteUserResponse:
-        """Change user password - Validación centralizada"""
+        """Change user password - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación centralizada en un solo lugar
             validated_data = process_change_password_input(input)
 
-            repository = DjangoUserRepository()
-            use_case = UpdateUserUseCase(repository)
+            # ✅ NUEVO: Usar container
+            container = get_user_container()
+            use_case = container.get_update_user_use_case()
 
             command = ChangePasswordCommand(
                 user_id=validated_data["user_id"],
@@ -99,13 +102,14 @@ class UserMutations:
 
     @strawberry.mutation
     async def delete_user(self, user_id: str) -> DeleteUserResponse:
-        """Delete user - Validación simple para single parameter"""
+        """Delete user - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación simple para parámetro único
             entity_id = validate_uuid(user_id, "User ID")
 
-            repository = DjangoUserRepository()
-            use_case = DeleteEntityUseCase(repository, "User")
+            # ✅ NUEVO: Usar container
+            container = get_user_container()
+            use_case = container.get_delete_user_use_case()
+
             command = DeleteEntityCommand(entity_id=entity_id)
 
             async def _execute():

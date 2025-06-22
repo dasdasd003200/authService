@@ -1,9 +1,11 @@
-# src/feature/users/infrastructure/web/strawberry/queries.py - SIMPLIFICADAS
+# src/feature/users/infrastructure/web/strawberry/queries.py - REFACTORIZADO
 import strawberry
 
-from src.feature.users.application.use_cases.get_user import GetUserUseCase, GetUserByEmailQuery
+from src.feature.users.application.use_cases.get_user import GetUserByEmailQuery
 from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdQuery
-from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
+
+# ✅ NUEVO: Import del container
+from src.core.infrastructure.containers.django_setup import get_user_container
 
 from src.core.infrastructure.web.strawberry.helpers import (
     execute_use_case,
@@ -18,17 +20,18 @@ from .converters import convert_user_to_type, convert_result_to_type
 
 @strawberry.type
 class UserQueries:
-    """User queries - Validación simplificada con helpers centralizados"""
+    """User queries - REFACTORIZADO con Dependency Injection"""
 
     @strawberry.field
     async def user_by_id(self, user_id: str) -> GetUserResponse:
-        """Get user by ID"""
+        """Get user by ID - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación simple con helper centralizado
             entity_id = validate_uuid(user_id, "User ID")
 
-            repository = DjangoUserRepository()
-            use_case = GetUserUseCase(repository)
+            # ✅ NUEVO: Usar container
+            container = get_user_container()
+            use_case = container.get_get_user_use_case()
+
             query = GetEntityByIdQuery(entity_id=entity_id)
 
             async def _execute():
@@ -42,13 +45,14 @@ class UserQueries:
 
     @strawberry.field
     async def user_by_email(self, email: str) -> GetUserByEmailResponse:
-        """Get user by email"""
+        """Get user by email - REFACTORIZADO con DI"""
         try:
-            # ✅ Validación simple con helper centralizado
             clean_email = validate_email_format(email)
 
-            repository = DjangoUserRepository()
-            use_case = GetUserUseCase(repository)
+            # ✅ NUEVO: Usar container
+            container = get_user_container()
+            use_case = container.get_get_user_use_case()
+
             query = GetUserByEmailQuery(email=clean_email)
 
             async def _execute():
