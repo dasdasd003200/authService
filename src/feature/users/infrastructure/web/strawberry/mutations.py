@@ -1,19 +1,28 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - ASYNC NATIVO
+# src/feature/users/infrastructure/web/strawberry/mutations.py - USANDO CORE HELPERS
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserUseCase, CreateUserCommand
+from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase, DeleteEntityCommand
 from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
-from .types import CreateUserInput, CreateUserResponse
+
+# USAR NUEVOS HELPERS
+from src.core.infrastructure.web.strawberry.helpers import (
+    execute_use_case,
+    validate_uuid,
+    create_success_response,
+    create_error_response,
+)
+from .types import CreateUserInput, CreateUserResponse, DeleteUserResponse, UserType
 from .converters import convert_create_result_to_user_type
 
 
 @strawberry.type
 class UserMutations:
-    """User mutations - ASYNC NATIVO"""
+    """User mutations - USANDO CORE HELPERS"""
 
     @strawberry.mutation
     async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create user - ASYNC NATIVO"""
+        """Create user - PATTERN LIMPIO"""
         try:
             repository = DjangoUserRepository()
             use_case = CreateUserUseCase(repository)
@@ -26,32 +35,33 @@ class UserMutations:
                 email_verified=input.email_verified,
             )
 
-            # ASYNC NATIVO - sin loop.run_until_complete()
-            result = await use_case.execute(command)
-            user_data = convert_create_result_to_user_type(result)
+            # USAR HELPER PARA EJECUTAR USE CASE
+            async def _execute():
+                result = await use_case.execute(command)
+                return convert_create_result_to_user_type(result)
 
-            return CreateUserResponse(success=True, message="User created successfully", error_code=None, data=user_data)
+            return await execute_use_case(_execute, CreateUserResponse, "User created successfully")
 
         except Exception as e:
-            return CreateUserResponse(success=False, message=str(e), error_code="USER_CREATION_ERROR", data=None)
+            return create_error_response(CreateUserResponse, e)
 
     @strawberry.mutation
-    async def delete_user(self, user_id: str) -> CreateUserResponse:
-        """Delete user - ASYNC NATIVO"""
+    async def delete_user(self, user_id: str) -> DeleteUserResponse:
+        """Delete user - PATTERN LIMPIO"""
         try:
-            from uuid import UUID
-            from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase, DeleteEntityCommand
+            # VALIDAR UUID USANDO HELPER
+            entity_id = validate_uuid(user_id, "User ID")
 
             repository = DjangoUserRepository()
             use_case = DeleteEntityUseCase(repository, "User")
-            command = DeleteEntityCommand(entity_id=UUID(user_id))
+            command = DeleteEntityCommand(entity_id=entity_id)
 
-            # ASYNC NATIVO - sin loop.run_until_complete()
-            success = await use_case.execute(command)
+            # USAR HELPER PARA EJECUTAR USE CASE
+            async def _execute():
+                return await use_case.execute(command)
 
-            message = "User deleted successfully" if success else "Failed to delete user"
-            return CreateUserResponse(success=success, message=message, error_code=None, data=None)
+            return await execute_use_case(_execute, DeleteUserResponse, "User deleted successfully")
 
         except Exception as e:
-            return CreateUserResponse(success=False, message=str(e), error_code="USER_DELETION_ERROR", data=None)
+            return create_error_response(DeleteUserResponse, e)
 

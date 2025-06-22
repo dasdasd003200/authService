@@ -1,99 +1,121 @@
-# src/core/infrastructure/web/strawberry/types.py
+# src/core/infrastructure/web/strawberry/types.py - CORE TYPES LIMPIOS
 """
-Base Strawberry types for consistent responses across all features.
+Tipos base para GraphQL - SOLO LO ESENCIAL
 """
 
 import strawberry
+from typing import Optional, List
+from datetime import datetime
 from enum import Enum
-from typing import Optional, TypeVar, List, TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Type, Any
-
-T = TypeVar("T")
 
 
-@strawberry.type
-class BaseResponse:
-    """Base response type for all mutations"""
-
-    success: bool = strawberry.field(
-        description="Indicates if the operation was successful"
-    )
-    message: Optional[str] = strawberry.field(
-        description="Human-readable message about the operation result"
-    )
-    error_code: Optional[str] = strawberry.field(
-        description="Machine-readable error code if operation failed"
-    )
-
-
-@strawberry.type
-class PaginationInfo:
-    """Pagination information for list queries"""
-
-    current_page: int = strawberry.field(description="Current page number")
-    page_size: int = strawberry.field(description="Number of items per page")
-    total_items: int = strawberry.field(description="Total number of items")
-    total_pages: int = strawberry.field(description="Total number of pages")
-    has_next: bool = strawberry.field(description="Whether there is a next page")
-    has_previous: bool = strawberry.field(
-        description="Whether there is a previous page"
-    )
+# ===== INPUT TYPES =====
 
 
 @strawberry.input
 class PaginationInput:
-    """Input type for pagination"""
+    """Standard pagination input"""
 
     page: int = strawberry.field(default=1, description="Page number (starts from 1)")
-    page_size: int = strawberry.field(
-        default=10, description="Number of items per page"
-    )
+    page_size: int = strawberry.field(default=10, description="Items per page (max 100)")
+
+    def __post_init__(self):
+        # Validation
+        if self.page < 1:
+            self.page = 1
+        if self.page_size < 1:
+            self.page_size = 10
+        if self.page_size > 100:
+            self.page_size = 100
 
 
-def create_response_type(data_type: "Type[Any]", type_name: str):
-    """
-    Factory function to create response types with data field.
+@strawberry.input
+class DateRangeInput:
+    """Standard date range input"""
 
-    Usage:
-        CreateUserResponse = create_response_type(UserType, "CreateUserResponse")
-    """
-    from typing import Any
-
-    @strawberry.type(name=type_name)
-    class Response(BaseResponse):
-        data: Optional[Any] = strawberry.field(description="The operation result data")
-
-    return Response
+    start_date: Optional[datetime] = strawberry.field(default=None, description="Start date")
+    end_date: Optional[datetime] = strawberry.field(default=None, description="End date")
 
 
-def create_paginated_type(item_type: "Type[Any]", type_name: str):
-    """
-    Factory function to create paginated response types.
+@strawberry.input
+class SearchInput:
+    """Standard search input"""
 
-    Usage:
-        UserPaginatedResponse = create_paginated_type(UserType, "UserPaginatedResponse")
-    """
-    from typing import Any
-
-    @strawberry.type(name=type_name)
-    class PaginatedResponse:
-        items: List[Any] = strawberry.field(description="List of items")
-        pagination: PaginationInfo = strawberry.field(
-            description="Pagination information"
-        )
-
-    return PaginatedResponse
+    query: Optional[str] = strawberry.field(default=None, description="Search term")
+    pagination: Optional[PaginationInput] = strawberry.field(default=None, description="Pagination")
+    date_range: Optional[DateRangeInput] = strawberry.field(default=None, description="Date filter")
 
 
-# Define the Strawberry enum directly
+# ===== OUTPUT TYPES =====
+
+
+@strawberry.type
+class PaginationInfo:
+    """Standard pagination info"""
+
+    current_page: int = strawberry.field(description="Current page number")
+    page_size: int = strawberry.field(description="Items per page")
+    total_items: int = strawberry.field(description="Total number of items")
+    total_pages: int = strawberry.field(description="Total number of pages")
+    has_next: bool = strawberry.field(description="Has next page")
+    has_previous: bool = strawberry.field(description="Has previous page")
+
+
+@strawberry.type
+class BaseResponse:
+    """Base response for all operations"""
+
+    success: bool = strawberry.field(description="Operation success status")
+    message: Optional[str] = strawberry.field(description="Human readable message")
+    error_code: Optional[str] = strawberry.field(description="Error code for handling")
+
+
+# ===== COMMON ENUMS =====
+
+
 @strawberry.enum
-class UserStatusEnumStrawberry(Enum):
-    """Strawberry GraphQL enum for user statuses"""
+class SortOrder(Enum):
+    """Standard sort order"""
+
+    ASC = "asc"
+    DESC = "desc"
+
+
+@strawberry.enum
+class UserStatus(Enum):
+    """User status enum"""
 
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"
     PENDING_VERIFICATION = "pending_verification"
+
+
+# ===== AUDIT FIELDS =====
+
+
+@strawberry.type
+class AuditFields:
+    """Standard audit fields for entities"""
+
+    created_at: Optional[datetime] = strawberry.field(description="Creation timestamp")
+    updated_at: Optional[datetime] = strawberry.field(description="Last update timestamp")
+
+
+# ===== ERROR TYPES =====
+
+
+@strawberry.type
+class FieldError:
+    """Field-specific validation error"""
+
+    field: str = strawberry.field(description="Field name")
+    message: str = strawberry.field(description="Error message")
+
+
+@strawberry.type
+class ValidationErrorResponse(BaseResponse):
+    """Response for validation errors"""
+
+    field_errors: Optional[List[FieldError]] = strawberry.field(description="Field-specific errors", default=None)
 
