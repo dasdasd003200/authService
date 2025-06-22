@@ -1,4 +1,4 @@
-# src/feature/users/application/use_cases/create_user.py - SIMPLIFICADO
+# src/feature/users/application/use_cases/create_user.py - ARREGLADO
 from dataclasses import dataclass
 
 from src.core.domain.value_objects.email import Email
@@ -24,10 +24,12 @@ class CreateUserCommand:
 
 @dataclass
 class CreateUserResult:
-    """Result of creating user"""
+    """Result of creating user - ARREGLADO: agregar first_name y last_name"""
 
     user_id: str
     email: str
+    first_name: str  # AGREGADO
+    last_name: str  # AGREGADO
     full_name: str
     status: str
     email_verified: bool
@@ -43,7 +45,7 @@ class CreateUserUseCase:
         """Execute user creation"""
         # Create value objects
         email = Email(command.email)
-        password_hash = hash_password(command.password)  # SIMPLIFICADO: usa core service
+        password_hash = hash_password(command.password)
 
         # Check conflicts
         if await self.user_repository.exists_by_email(email):
@@ -55,7 +57,7 @@ class CreateUserUseCase:
         # Create entity
         user = User(
             email=email,
-            password_hash=password_hash,  # CAMBIADO: pasa el hash directamente
+            password_hash=password_hash,
             first_name=command.first_name,
             last_name=command.last_name,
             status=UserStatus.PENDING_VERIFICATION if not command.email_verified else UserStatus.ACTIVE,
@@ -65,10 +67,12 @@ class CreateUserUseCase:
         # Save
         saved_user = await self.user_repository.save(user)
 
-        # Return result
+        # Return result - ARREGLADO: incluir todos los campos
         return CreateUserResult(
             user_id=str(saved_user.id),
             email=str(saved_user.email),
+            first_name=saved_user.first_name,  # ARREGLADO
+            last_name=saved_user.last_name,  # ARREGLADO
             full_name=saved_user.full_name,
             status=saved_user.status.value,
             email_verified=saved_user.email_verified,
