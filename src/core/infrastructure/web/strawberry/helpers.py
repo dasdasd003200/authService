@@ -1,6 +1,6 @@
-# src/core/infrastructure/web/strawberry/helpers.py - MINIMAL VERSION
+# src/core/infrastructure/web/strawberry/helpers.py - COMPLETO Y CORREGIDO
 """
-Core helpers - SOLO LO QUE REALMENTE NECESITAS
+Core helpers - COMPLETO CON TODAS LAS FUNCIONES
 """
 
 import asyncio
@@ -13,10 +13,16 @@ T = TypeVar("T")
 
 
 # ===== ASYNC EXECUTION =====
+# DEPRECATED: No usar handle_async_execution - usar async nativo en Strawberry
 
 
 def handle_async_execution(async_func: Callable, *args, **kwargs) -> Any:
-    """Run async functions in sync context"""
+    """
+    DEPRECATED: Run async functions in sync context
+
+    WARNING: This can cause deadlocks and event loop issues.
+    Use native async/await in Strawberry mutations/queries instead.
+    """
     try:
         loop = asyncio.get_event_loop()
     except RuntimeError:
@@ -50,10 +56,23 @@ def create_error_response(response_class: Type[T], error: Exception) -> T:
 
 
 # ===== DECORATORS =====
+# DEPRECATED: Use native async in Strawberry instead
 
 
 def async_graphql_mutation(response_class: Type[T]):
-    """Decorator for async mutations"""
+    """
+    DEPRECATED: Decorator for async mutations
+
+    WARNING: Use native async/await in Strawberry instead:
+
+    @strawberry.mutation
+    async def my_mutation(self, input: MyInput) -> MyResponse:
+        try:
+            result = await my_use_case.execute(command)
+            return MyResponse(success=True, data=result)
+        except Exception as e:
+            return MyResponse(success=False, message=str(e))
+    """
 
     def decorator(async_func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
@@ -72,7 +91,19 @@ def async_graphql_mutation(response_class: Type[T]):
 
 
 def async_graphql_query(default_value: Any = None):
-    """Decorator for async queries"""
+    """
+    DEPRECATED: Decorator for async queries
+
+    WARNING: Use native async/await in Strawberry instead:
+
+    @strawberry.field
+    async def my_query(self, id: str) -> Optional[MyType]:
+        try:
+            result = await my_use_case.execute(query)
+            return convert_to_type(result)
+        except Exception:
+            return None
+    """
 
     def decorator(async_func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
@@ -90,10 +121,12 @@ def async_graphql_query(default_value: Any = None):
 
 
 def uuid_to_string(uuid_obj: Optional[UUID]) -> str:
+    """Convert UUID to string safely"""
     return str(uuid_obj) if uuid_obj else ""
 
 
 def safe_str(obj: Any) -> str:
+    """Convert object to string safely"""
     return str(obj) if obj else ""
 
 
@@ -110,7 +143,11 @@ def convert_enum_to_graphql(domain_enum_value: str, graphql_enum_class):
 
 
 def get_by_id_pattern(repository, entity_id: str, converter_func, entity_name: str = "Entity"):
-    """Standard get by ID"""
+    """
+    DEPRECATED: Standard get by ID pattern
+
+    WARNING: Use native async/await in Strawberry instead
+    """
 
     async def _get():
         from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdUseCase, GetEntityByIdQuery
@@ -124,7 +161,11 @@ def get_by_id_pattern(repository, entity_id: str, converter_func, entity_name: s
 
 
 def delete_pattern(repository, entity_id: str, response_class, entity_name: str = "Entity"):
-    """Standard delete"""
+    """
+    DEPRECATED: Standard delete pattern
+
+    WARNING: Use native async/await in Strawberry instead
+    """
 
     async def _delete():
         from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase, DeleteEntityCommand

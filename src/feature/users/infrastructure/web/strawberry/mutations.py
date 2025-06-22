@@ -1,4 +1,4 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - FIXED
+# src/feature/users/infrastructure/web/strawberry/mutations.py - ASYNC NATIVO
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserUseCase, CreateUserCommand
@@ -9,11 +9,11 @@ from .converters import convert_create_result_to_user_type
 
 @strawberry.type
 class UserMutations:
-    """User mutations - FIXED VERSION"""
+    """User mutations - ASYNC NATIVO"""
 
     @strawberry.mutation
-    def create_user(self, input: CreateUserInput) -> CreateUserResponse:
-        """Create user - SYNC VERSION"""
+    async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
+        """Create user - ASYNC NATIVO"""
         try:
             repository = DjangoUserRepository()
             use_case = CreateUserUseCase(repository)
@@ -26,16 +26,8 @@ class UserMutations:
                 email_verified=input.email_verified,
             )
 
-            # Execute async function synchronously
-            import asyncio
-
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-            result = loop.run_until_complete(use_case.execute(command))
+            # ASYNC NATIVO - sin loop.run_until_complete()
+            result = await use_case.execute(command)
             user_data = convert_create_result_to_user_type(result)
 
             return CreateUserResponse(success=True, message="User created successfully", error_code=None, data=user_data)
@@ -44,8 +36,8 @@ class UserMutations:
             return CreateUserResponse(success=False, message=str(e), error_code="USER_CREATION_ERROR", data=None)
 
     @strawberry.mutation
-    def delete_user(self, user_id: str) -> CreateUserResponse:
-        """Delete user - SYNC VERSION"""
+    async def delete_user(self, user_id: str) -> CreateUserResponse:
+        """Delete user - ASYNC NATIVO"""
         try:
             from uuid import UUID
             from src.core.application.use_cases.base_crud_use_cases import DeleteEntityUseCase, DeleteEntityCommand
@@ -54,18 +46,11 @@ class UserMutations:
             use_case = DeleteEntityUseCase(repository, "User")
             command = DeleteEntityCommand(entity_id=UUID(user_id))
 
-            # Execute async function synchronously
-            import asyncio
+            # ASYNC NATIVO - sin loop.run_until_complete()
+            success = await use_case.execute(command)
 
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-
-            success = loop.run_until_complete(use_case.execute(command))
-
-            return CreateUserResponse(success=success, message="User deleted successfully" if success else "Failed to delete user", error_code=None, data=None)
+            message = "User deleted successfully" if success else "Failed to delete user"
+            return CreateUserResponse(success=success, message=message, error_code=None, data=None)
 
         except Exception as e:
             return CreateUserResponse(success=False, message=str(e), error_code="USER_DELETION_ERROR", data=None)
