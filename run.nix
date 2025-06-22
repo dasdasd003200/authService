@@ -10,6 +10,7 @@ pkgs.mkShell {
 
   shellHook = ''
     source venv/bin/activate
-    python manage.py runserver
+    uvicorn config.asgi:application --reload --port 8000
   '';
 }
+    # python manage.py runserver
