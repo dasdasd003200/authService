@@ -1,6 +1,7 @@
-# src/core/infrastructure/web/strawberry/helpers/converters.py
+# src/core/infrastructure/web/strawberry/helpers/converters.py - LIMPIO
 """
 Utilities for converting between different data types in GraphQL context
+SOLO FUNCIONES GENÉRICAS REUTILIZABLES
 """
 
 from typing import Optional, Any, Type
@@ -26,7 +27,7 @@ def safe_int(value: Any, default: int = 0) -> int:
 
 
 def convert_domain_enum_to_graphql(domain_value: str, graphql_enum_class) -> Any:
-    """Convert domain enum value to GraphQL enum"""
+    """Convert domain enum value to GraphQL enum - GENÉRICO"""
     try:
         for enum_item in graphql_enum_class:
             if enum_item.value == domain_value:

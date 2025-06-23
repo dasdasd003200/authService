@@ -1,6 +1,6 @@
-# src/core/infrastructure/web/strawberry/types.py - CORE TYPES LIMPIOS
+# src/core/infrastructure/web/strawberry/types.py - LIMPIO
 """
-Tipos base para GraphQL - SOLO LO ESENCIAL
+Tipos base para GraphQL - SOLO LO GENÉRICO REUTILIZABLE
 """
 
 import strawberry
@@ -10,8 +10,6 @@ from enum import Enum
 
 
 # ===== INPUT TYPES =====
-
-
 @strawberry.input
 class PaginationInput:
     """Standard pagination input"""
@@ -20,7 +18,6 @@ class PaginationInput:
     page_size: int = strawberry.field(default=10, description="Items per page (max 100)")
 
     def __post_init__(self):
-        # Validation
         if self.page < 1:
             self.page = 1
         if self.page_size < 1:
@@ -47,8 +44,6 @@ class SearchInput:
 
 
 # ===== OUTPUT TYPES =====
-
-
 @strawberry.type
 class PaginationInfo:
     """Standard pagination info"""
@@ -71,8 +66,6 @@ class BaseResponse:
 
 
 # ===== COMMON ENUMS =====
-
-
 @strawberry.enum
 class SortOrder(Enum):
     """Standard sort order"""
@@ -81,19 +74,7 @@ class SortOrder(Enum):
     DESC = "desc"
 
 
-@strawberry.enum
-class UserStatus(Enum):
-    """User status enum"""
-
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    SUSPENDED = "suspended"
-    PENDING_VERIFICATION = "pending_verification"
-
-
 # ===== AUDIT FIELDS =====
-
-
 @strawberry.type
 class AuditFields:
     """Standard audit fields for entities"""
@@ -103,8 +84,6 @@ class AuditFields:
 
 
 # ===== ERROR TYPES =====
-
-
 @strawberry.type
 class FieldError:
     """Field-specific validation error"""

@@ -8,8 +8,7 @@ from src.core.infrastructure.web.strawberry.helpers.converters import (
     safe_str,
     convert_domain_enum_to_graphql,
 )
-
-from src.core.infrastructure.web.strawberry.types import UserStatus
+from .enums import UserStatus
 from .types import UserType
 
 
@@ -62,4 +61,3 @@ def convert_create_result_to_user_type(result) -> UserType:
         created_at=None,
         updated_at=None,
     )
-

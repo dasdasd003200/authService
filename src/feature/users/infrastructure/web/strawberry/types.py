@@ -9,7 +9,6 @@ from datetime import datetime
 
 # USAR CORE TYPES EN LUGAR DE DUPLICAR
 from src.core.infrastructure.web.strawberry.types import (
-    UserStatus,
     PaginationInfo,
     BaseResponse,
     AuditFields,
@@ -19,6 +18,7 @@ from src.core.infrastructure.web.strawberry.response_factory import (
     create_simple_response,
     create_paginated_response,
 )
+from .enums import UserStatus
 
 
 @strawberry.type
@@ -75,4 +75,3 @@ UsersPaginatedResponse = create_paginated_response(UserType, "UsersPaginatedResp
 # ===== NUEVOS: QUERY RESPONSES =====
 GetUserResponse = create_mutation_response(UserType, "GetUserResponse")
 GetUserByEmailResponse = create_mutation_response(UserType, "GetUserByEmailResponse")
-
