@@ -1,8 +1,8 @@
-# src/feature/users/infrastructure/web/strawberry/queries.py - ACTUALIZADO
+# src/feature/users/infrastructure/web/strawberry/queries.py - ACTUALIZADO IMPORTS
 import strawberry
 
 from src.feature.users.application.use_cases.get_user import GetUserByEmailQuery
-from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdQuery
+from src.core.application.use_cases.base import GetEntityByIdQuery
 
 from src.core.infrastructure.containers.django_setup import get_user_container
 

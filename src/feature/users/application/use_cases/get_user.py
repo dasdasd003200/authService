@@ -1,9 +1,8 @@
-# src/feature/users/application/use_cases/get_user.py - SIMPLIFIED
+# src/feature/users/application/use_cases/get_user.py - ACTUALIZADO IMPORTS
 from dataclasses import dataclass
 from typing import Optional
-# from uuid import UUID
 
-from src.core.application.use_cases.base_crud_use_cases import GetEntityByIdUseCase
+from src.core.application.use_cases.base import GetEntityByIdUseCase
 from src.core.domain.value_objects.email import Email
 from src.core.exceptions.base_exceptions import NotFoundError
 from src.feature.users.domain.entities.user import User
@@ -62,3 +61,4 @@ class GetUserUseCase(GetEntityByIdUseCase[User]):
             last_login=user.last_login.isoformat() if user.last_login else None,
             failed_login_attempts=user.failed_login_attempts,
         )
+

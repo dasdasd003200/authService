@@ -1,9 +1,10 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - ACTUALIZADO
+# src/feature/users/infrastructure/web/strawberry/mutations.py - CORREGIR IMPORT
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserCommand
 from src.feature.users.application.use_cases.update_user import UpdateUserCommand, ChangePasswordCommand
-from src.core.application.use_cases.base_crud_use_cases import DeleteEntityCommand
+
+from src.core.application.use_cases.base import DeleteEntityCommand
 
 from src.core.infrastructure.containers.django_setup import get_user_container
 
