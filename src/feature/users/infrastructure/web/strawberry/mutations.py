@@ -1,20 +1,20 @@
-# src/feature/users/infrastructure/web/strawberry/mutations.py - CORREGIR IMPORT
+# src/feature/users/infrastructure/web/strawberry/mutations.py
 import strawberry
 
 from src.feature.users.application.use_cases.create_user import CreateUserCommand
 from src.feature.users.application.use_cases.update_user import UpdateUserCommand, ChangePasswordCommand
-
 from src.core.application.use_cases.base import DeleteEntityCommand
-
 from src.core.infrastructure.containers.django_setup import get_user_container
 
-# OPCIÓN 1: Imports específicos por módulo (RECOMENDADO)
+# CORE helpers (genéricos)
 from src.core.infrastructure.web.strawberry.helpers.execution import (
     execute_use_case,
     create_error_response,
 )
 from src.core.infrastructure.web.strawberry.helpers.validators import validate_uuid
-from src.core.infrastructure.web.strawberry.helpers.processors import (
+
+# FEATURE-SPECIFIC helpers (específicos de users)
+from .helpers.processors import (
     process_create_user_input,
     process_update_user_input,
     process_change_password_input,
@@ -120,4 +120,3 @@ class UserMutations:
 
         except Exception as e:
             return create_error_response(DeleteUserResponse, e)
-

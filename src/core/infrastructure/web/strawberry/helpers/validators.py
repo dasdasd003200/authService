@@ -1,6 +1,7 @@
 # src/core/infrastructure/web/strawberry/helpers/validators.py
 """
 Input validation utilities for GraphQL mutations and queries
+SOLO VALIDACIONES VERDADERAMENTE GENÉRICAS Y REUTILIZABLES
 """
 
 import re
@@ -11,7 +12,10 @@ from src.core.exceptions.base_exceptions import ValidationException
 
 
 def validate_uuid(uuid_str: str, field_name: str = "ID") -> UUID:
-    """Validate and convert string to UUID with enhanced error messages"""
+    """
+    Validate and convert string to UUID - GENÉRICO
+    Cualquier feature puede usar UUIDs para identificadores
+    """
     if not uuid_str or not isinstance(uuid_str, str):
         raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
 
@@ -26,7 +30,10 @@ def validate_uuid(uuid_str: str, field_name: str = "ID") -> UUID:
 
 
 def validate_required(value: Any, field_name: str) -> Any:
-    """Validate required field with better error handling"""
+    """
+    Validate required field - GENÉRICO
+    Cualquier feature puede usar esta validación básica
+    """
     if value is None:
         raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
 
@@ -39,7 +46,10 @@ def validate_required(value: Any, field_name: str) -> Any:
 
 
 def validate_email_format(email: str, field_name: str = "Email") -> str:
-    """Enhanced email validation with comprehensive checks"""
+    """
+    Enhanced email validation - GENÉRICO
+    Múltiples features podrían necesitar validar emails (users, contacts, notifications, etc.)
+    """
     if not email or not isinstance(email, str):
         raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
 
@@ -80,42 +90,39 @@ def validate_email_format(email: str, field_name: str = "Email") -> str:
     return email
 
 
-def validate_name(name: str, field_name: str, min_length: int = 1, max_length: int = 50) -> str:
-    """Validate user names (first_name, last_name)"""
-    if not name or not isinstance(name, str):
-        raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
-
-    name = name.strip()
-
-    if not name:
-        raise ValidationException(f"{field_name} cannot be empty", error_code="FIELD_EMPTY")
-
-    if len(name) < min_length:
-        raise ValidationException(f"{field_name} must be at least {min_length} characters", error_code="NAME_TOO_SHORT")
-
-    if len(name) > max_length:
-        raise ValidationException(f"{field_name} must be at most {max_length} characters", error_code="NAME_TOO_LONG")
-
-    # Only allow letters, spaces, hyphens, apostrophes
-    name_pattern = r"^[a-zA-ZÀ-ÿ\s\-']+$"
-    if not re.match(name_pattern, name):
-        raise ValidationException(f"{field_name} contains invalid characters", error_code="INVALID_NAME_CHARACTERS")
-
-    return name
+def validate_positive_integer(value: Any, field_name: str, min_value: int = 1) -> int:
+    """
+    Validate positive integer - GENÉRICO
+    Útil para IDs, cantidades, páginas, etc.
+    """
+    try:
+        int_value = int(value)
+        if int_value < min_value:
+            raise ValidationException(f"{field_name} must be at least {min_value}", error_code="VALUE_TOO_SMALL")
+        return int_value
+    except (ValueError, TypeError):
+        raise ValidationException(f"{field_name} must be a valid integer", error_code="INVALID_INTEGER")
 
 
-def validate_password_strength(password: str, field_name: str = "Password") -> str:
-    """Basic password validation (Django will do full validation)"""
-    if not password or not isinstance(password, str):
-        raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
+def validate_string_length(value: str, field_name: str, min_length: int = 0, max_length: int = 255) -> str:
+    """
+    Generic string length validation - GENÉRICO
+    Útil para cualquier campo de texto con restricciones de longitud
+    """
+    if not isinstance(value, str):
+        raise ValidationException(f"{field_name} must be a string", error_code="INVALID_TYPE")
 
-    if len(password.strip()) != len(password):
-        raise ValidationException(f"{field_name} cannot start or end with spaces", error_code="INVALID_PASSWORD_WHITESPACE")
+    value = value.strip()
 
-    if len(password) < 8:
-        raise ValidationException(f"{field_name} must be at least 8 characters", error_code="PASSWORD_TOO_SHORT")
+    if len(value) < min_length:
+        raise ValidationException(f"{field_name} must be at least {min_length} characters", error_code="STRING_TOO_SHORT")
 
-    if len(password) > 128:
-        raise ValidationException(f"{field_name} is too long (max 128 characters)", error_code="PASSWORD_TOO_LONG")
+    if len(value) > max_length:
+        raise ValidationException(f"{field_name} must be at most {max_length} characters", error_code="STRING_TOO_LONG")
 
-    return password
+    return value
+
+
+# ELIMINADOS: validate_name() y validate_password_strength()
+# → Movidos a src/feature/users/infrastructure/web/strawberry/helpers/validators.py
+
