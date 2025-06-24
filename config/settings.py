@@ -1,4 +1,3 @@
-# config/settings.py - Updated for Strawberry GraphQL
 from pathlib import Path
 from decouple import config, Csv
 
@@ -9,7 +8,7 @@ SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
-# Application definition
+# Application definition - EXPLÍCITO (como debe ser)
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -18,10 +17,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "config.apps.CoreConfig",
-    # Third party - STRAWBERRY INSTEAD OF GRAPHENE
     "strawberry.django",
-    # Local apps
+    # ✅ APPS EXPLÍCITAS - Esta es la práctica correcta en Django
     "src.feature.users.infrastructure.web",
+    # "src.feature.authentication.infrastructure.web",  # Futuro
 ]
 
 MIDDLEWARE = [
@@ -66,23 +65,15 @@ DATABASES = {
     }
 }
 
-# IMPORTANT: Tell Django to use your custom user model
+# ✅ DJANGO ESTÁNDAR: AUTH_USER_MODEL explícito
 AUTH_USER_MODEL = "users.UserModel"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # Internationalization
@@ -97,9 +88,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# REMOVED: GRAPHENE settings
-# GRAPHENE = {"SCHEMA": "config.schema.schema"}
 
 # JWT Settings
 JWT_SECRET_KEY = config("JWT_SECRET_KEY")
