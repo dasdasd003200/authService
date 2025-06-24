@@ -1,6 +1,5 @@
-# config/apps.py
 """
-Configuración de aplicación Django
+Configuración de aplicación Django - LIMPIO
 """
 
 from django.apps import AppConfig
@@ -14,7 +13,8 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         """Ejecutar cuando Django esté listo"""
-        # Configurar containers
-        from src.core.infrastructure.containers.django_setup import setup_containers
+        # Solo configurar modules - ¡NO containers!
+        from config.app_modules import configure_all_modules
 
-        setup_containers()
+        configure_all_modules()
+

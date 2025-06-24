@@ -1,10 +1,15 @@
-# src/feature/users/infrastructure/web/strawberry/queries.py - ACTUALIZADO IMPORTS
+# 2. src/feature/users/infrastructure/web/strawberry/queries.py
+"""
+User Queries - IMPORT CORREGIDO
+"""
+
 import strawberry
+
+# ✅ CORRECTO - Import desde la raíz del feature:
+from ...dependency_injection import get_get_user_use_case
 
 from src.feature.users.application.use_cases.get_user import GetUserByEmailQuery
 from src.core.application.use_cases.base import GetEntityByIdQuery
-
-from src.core.infrastructure.containers.django_setup import get_user_container
 
 from src.core.infrastructure.web.strawberry.helpers.execution import (
     execute_use_case,
@@ -21,16 +26,14 @@ from .converters import convert_user_to_type, convert_result_to_type
 
 @strawberry.type
 class UserQueries:
-    """User queries - REFACTORIZADO con Dependency Injection y helpers modulares"""
+    """User queries - IMPORT CORREGIDO"""
 
     @strawberry.field
     async def user_by_id(self, user_id: str) -> GetUserResponse:
-        """Get user by ID - REFACTORIZADO con helpers modulares"""
+        """Get user by ID"""
         try:
             entity_id = validate_uuid(user_id, "User ID")
-
-            container = get_user_container()
-            use_case = container.get_get_user_use_case()
+            use_case = get_get_user_use_case()  # ✅ Ahora funciona
 
             query = GetEntityByIdQuery(entity_id=entity_id)
 
@@ -45,12 +48,10 @@ class UserQueries:
 
     @strawberry.field
     async def user_by_email(self, email: str) -> GetUserByEmailResponse:
-        """Get user by email - REFACTORIZADO con helpers modulares"""
+        """Get user by email"""
         try:
             clean_email = validate_email_format(email)
-
-            container = get_user_container()
-            use_case = container.get_get_user_use_case()
+            use_case = get_get_user_use_case()
 
             query = GetUserByEmailQuery(email=clean_email)
 
