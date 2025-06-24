@@ -7,10 +7,11 @@ from src.core.application.use_cases.base_search_use_case import (
     BaseSearchUseCase,
     BaseSearchQuery,
 )
-from src.core.domain.repositories.criteria.factory import CriteriaFactory
-from src.core.domain.repositories.criteria.base_criteria import CriteriaBuilder
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.entities.user import User
+
+from src.shared.criteria.factory import CriteriaFactory
+from src.shared.criteria.base_criteria import CriteriaBuilder
 
 
 @dataclass

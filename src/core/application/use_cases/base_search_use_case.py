@@ -5,10 +5,13 @@ from datetime import datetime
 
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
-from src.core.domain.repositories.criteria.base_criteria import CriteriaBuilder
-from src.core.domain.repositories.criteria.date_range_criteria import DateRangeCriteria
-from src.core.application.dto.pagination import PaginationRequest, PaginatedResult
 from src.core.application.interfaces.base_use_case import BaseUseCase
+
+
+from src.shared.criteria.base_criteria import CriteriaBuilder
+from src.shared.criteria.implementations.date_range_criteria import DateRangeCriteria
+from src.core.application.dto.pagination import PaginationRequest, PaginatedResult
+
 
 T = TypeVar("T", bound=BaseEntity)
 
@@ -56,9 +59,7 @@ class BaseSearchUseCase(BaseUseCase[BaseSearchQuery, PaginatedResult[T]], Generi
         pagination = query.pagination or PaginationRequest()
 
         # Add pagination
-        from src.core.domain.repositories.criteria.pagination_criteria import (
-            PaginationCriteria,
-        )
+        from src.shared.criteria.implementations.pagination_criteria import PaginationCriteria
 
         criteria_builder.add(PaginationCriteria(pagination.limit, pagination.offset))
         search_criteria = criteria_builder.build()
@@ -75,9 +76,6 @@ class BaseSearchUseCase(BaseUseCase[BaseSearchQuery, PaginatedResult[T]], Generi
             total_items=total_count,
         )
 
-    def _add_custom_criteria(
-        self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery
-    ):
+    def _add_custom_criteria(self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery):
         """Override in subclasses to add custom search criteria"""
         pass
-

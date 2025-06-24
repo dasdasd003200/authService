@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from django.db.models import QuerySet
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class DateRangeCriteria(BaseCriteria):

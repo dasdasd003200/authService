@@ -4,14 +4,15 @@
 from typing import List, Any, Optional
 from datetime import datetime
 
-from .text_search_criteria import TextSearchCriteria
-from .status_criteria import StatusCriteria
-from .boolean_criteria import BooleanCriteria
-from .ordering_criteria import OrderingCriteria
-from .in_criteria import InCriteria
-from .range_criteria import RangeCriteria
-from .date_range_criteria import DateRangeCriteria
-from .pagination_criteria import PaginationCriteria
+
+from .implementations.text_search_criteria import TextSearchCriteria
+from .implementations.status_criteria import StatusCriteria
+from .implementations.boolean_criteria import BooleanCriteria
+from .implementations.ordering_criteria import OrderingCriteria
+from .implementations.in_criteria import InCriteria
+from .implementations.range_criteria import RangeCriteria
+from .implementations.date_range_criteria import DateRangeCriteria
+from .implementations.pagination_criteria import PaginationCriteria
 
 
 class CriteriaFactory:

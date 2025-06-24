@@ -4,7 +4,7 @@ from typing import List
 # from functools import reduce
 # import operator
 from django.db.models import QuerySet, Q
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class TextSearchCriteria(BaseCriteria):
@@ -44,4 +44,3 @@ class TextSearchCriteria(BaseCriteria):
             "search_term": self.search_term,
             "fields": self.fields,
         }
-

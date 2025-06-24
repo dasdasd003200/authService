@@ -1,5 +1,5 @@
 from django.db.models import QuerySet
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class PaginationCriteria(BaseCriteria):

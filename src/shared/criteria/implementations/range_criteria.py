@@ -1,7 +1,7 @@
 # src/core/domain/repositories/criteria/range_criteria.py
 from typing import Optional, Any
 from django.db.models import QuerySet
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class RangeCriteria(BaseCriteria):

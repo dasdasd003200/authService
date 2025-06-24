@@ -3,7 +3,7 @@ from typing import Optional, List, TypeVar, Generic
 from uuid import UUID
 
 from src.core.domain.entities.base_entity import BaseEntity
-from src.core.domain.repositories.criteria.base_criteria import BaseCriteria
+from src.shared.criteria.base_criteria import BaseCriteria
 
 T = TypeVar("T", bound=BaseEntity)
 

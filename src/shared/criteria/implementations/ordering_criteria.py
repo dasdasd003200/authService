@@ -1,7 +1,7 @@
 # src/core/domain/repositories/criteria/ordering_criteria.py
 from typing import List
 from django.db.models import QuerySet
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class OrderingCriteria(BaseCriteria):

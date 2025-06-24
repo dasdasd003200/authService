@@ -1,6 +1,6 @@
 # src/core/domain/repositories/criteria/boolean_criteria.py
 from django.db.models import QuerySet
-from .base_criteria import BaseCriteria
+from ..base_criteria import BaseCriteria
 
 
 class BooleanCriteria(BaseCriteria):

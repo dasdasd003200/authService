@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
-from src.core.domain.repositories.criteria.base_criteria import BaseCriteria
+from src.shared.criteria.base_criteria import BaseCriteria
 from src.core.infrastructure.database.mappers.base_mapper import BaseEntityMapper
 
 T = TypeVar("T", bound=BaseEntity)
@@ -134,4 +134,3 @@ class DjangoBaseRepository(BaseRepository[T]):
     async def delete(self, entity_id: UUID) -> bool:
         """Legacy delete method - delegates to delete_by_id"""
         return await self.delete_by_id(entity_id)
-

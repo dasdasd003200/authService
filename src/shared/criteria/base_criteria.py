@@ -34,4 +34,3 @@ class CriteriaBuilder:
         for criteria in self._criteria:
             queryset = criteria.apply(queryset)
         return queryset
-
