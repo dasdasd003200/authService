@@ -1,8 +1,3 @@
-# src/shared/criteria/implementations/__init__.py
-"""
-Concrete implementations of criteria
-"""
-
 from .boolean_criteria import BooleanCriteria
 from .date_range_criteria import DateRangeCriteria
 from .in_criteria import InCriteria

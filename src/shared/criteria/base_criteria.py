@@ -4,22 +4,16 @@ from django.db.models import QuerySet
 
 
 class BaseCriteria(ABC):
-    """Criterio base para búsquedas"""
-
     @abstractmethod
     def apply(self, queryset: QuerySet) -> QuerySet:
-        """Aplicar criterio al queryset"""
         pass
 
     @abstractmethod
     def to_dict(self) -> Dict[str, Any]:
-        """Serializar criterio para caching/debugging"""
         pass
 
 
 class CriteriaBuilder:
-    """Builder para combinar múltiples criterios"""
-
     def __init__(self):
         self._criteria: List[BaseCriteria] = []
 

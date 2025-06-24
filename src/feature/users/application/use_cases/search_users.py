@@ -1,32 +1,24 @@
-# src/feature/users/application/use_cases/search_users.py - FIXED CRITICAL
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
-from src.core.application.use_cases.base_search_use_case import (
-    BaseSearchUseCase,
-    BaseSearchQuery,
-)
 from src.feature.users.domain.repositories.user_repository import UserRepository
 from src.feature.users.domain.entities.user import User
-
 from src.shared.criteria.factory import CriteriaFactory
 from src.shared.criteria.base_criteria import CriteriaBuilder
 
 
 @dataclass
-class SearchUsersQuery(BaseSearchQuery):
-    """Query for searching users - extends base with user-specific filters"""
-
+class SearchUsersQuery:
     status: Optional[str] = None
     email_verified: Optional[bool] = None
-    search_text: Optional[str] = None  # Search in name/email
+    search_text: Optional[str] = None
+    page: int = 1
+    page_size: int = 10
 
 
 @dataclass
 class UserSearchResult:
-    """Single user result"""
-
     user_id: str
     email: str
     first_name: str
@@ -37,31 +29,30 @@ class UserSearchResult:
     created_at: datetime
 
 
-class SearchUsersUseCase(BaseSearchUseCase[User]):
-    """Use case for searching users - much simpler now!"""
-
+class SearchUsersUseCase:
     def __init__(self, user_repository: UserRepository):
-        super().__init__(user_repository)
+        self.user_repository = user_repository
 
-    def _add_custom_criteria(self, criteria_builder: CriteriaBuilder, query: BaseSearchQuery):
-        """Add user-specific search criteria"""
-        # FIXED: Type cast correctly
-        if not isinstance(query, SearchUsersQuery):
-            return
+    async def execute(self, query: SearchUsersQuery) -> List[UserSearchResult]:
+        criteria_builder = CriteriaBuilder()
 
-        # Status filter
+        # Filtros de users
         if query.status:
             criteria_builder.add(CriteriaFactory.status(query.status))
 
-        # Email verification filter
         if query.email_verified is not None:
             criteria_builder.add(CriteriaFactory.boolean_field("email_verified", query.email_verified))
 
-        # Text search in name and email
         if query.search_text:
             criteria_builder.add(CriteriaFactory.text_search(query.search_text, ["first_name", "last_name", "email"]))
 
-    def _convert_entities_to_results(self, users: list[User]) -> list[UserSearchResult]:
+        offset = (query.page - 1) * query.page_size
+        criteria_builder.add(CriteriaFactory.paginate(query.page_size, offset))
+
+        users = await self.user_repository.find_by_criteria(criteria_builder.build())
+        return self._convert_entities_to_results(users)
+
+    def _convert_entities_to_results(self, users: List[User]) -> List[UserSearchResult]:
         """Convert domain entities to result objects"""
         return [
             UserSearchResult(
@@ -76,3 +67,4 @@ class SearchUsersUseCase(BaseSearchUseCase[User]):
             )
             for user in users
         ]
+

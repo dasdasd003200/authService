@@ -1,15 +1,8 @@
-# src/core/application/use_cases/base/delete_entity.py
-"""
-Base use case for deleting entities
-"""
-
 from typing import TypeVar, Generic
-
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
 from src.core.exceptions.base_exceptions import NotFoundError
 from src.core.application.interfaces.base_use_case import BaseUseCase
-
 from .commands import DeleteEntityCommand
 
 T = TypeVar("T", bound=BaseEntity)

@@ -1,11 +1,8 @@
-# src/core/domain/repositories/criteria/boolean_criteria.py
 from django.db.models import QuerySet
 from ..base_criteria import BaseCriteria
 
 
 class BooleanCriteria(BaseCriteria):
-    """Generic criteria for boolean field filtering"""
-
     def __init__(self, field_name: str, value: bool):
         self.field_name = field_name
         self.value = value

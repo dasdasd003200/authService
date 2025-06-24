@@ -1,13 +1,7 @@
-# src/feature/users/infrastructure/web/strawberry/types.py - AGREGADO Response Types para Queries
-"""
-Strawberry GraphQL types for User feature - USANDO CORE TYPES
-"""
-
 import strawberry
 from typing import Optional, List
 from datetime import datetime
 
-# USAR CORE TYPES EN LUGAR DE DUPLICAR
 from src.core.infrastructure.web.strawberry.types import (
     PaginationInfo,
     BaseResponse,
@@ -23,8 +17,6 @@ from .enums import UserStatus
 
 @strawberry.type
 class UserType:
-    """GraphQL type for User"""
-
     id: str = strawberry.field(description="Unique user ID")
     email: str = strawberry.field(description="User email")
     first_name: str = strawberry.field(description="User first name")
@@ -40,8 +32,6 @@ class UserType:
 
 @strawberry.input
 class CreateUserInput:
-    """Input for creating user"""
-
     email: str = strawberry.field(description="User email")
     password: str = strawberry.field(description="User password (will be hashed by Django)")
     first_name: str = strawberry.field(description="User first name")
@@ -51,8 +41,6 @@ class CreateUserInput:
 
 @strawberry.input
 class UpdateUserInput:
-    """Input for updating user"""
-
     user_id: str = strawberry.field(description="User ID to update")
     first_name: Optional[str] = strawberry.field(default=None, description="New first name")
     last_name: Optional[str] = strawberry.field(default=None, description="New last name")
@@ -60,8 +48,6 @@ class UpdateUserInput:
 
 @strawberry.input
 class ChangePasswordInput:
-    """Input for changing password"""
-
     user_id: str = strawberry.field(description="User ID")
     new_password: str = strawberry.field(description="New password (will be hashed by Django)")
 

@@ -1,8 +1,3 @@
-# src/feature/users/infrastructure/web/strawberry/helpers/__init__.py
-"""
-Helpers específicos del feature Users
-"""
-
 from .processors import (
     process_create_user_input,
     process_update_user_input,

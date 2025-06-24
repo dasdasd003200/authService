@@ -1,20 +1,8 @@
-# src/feature/users/infrastructure/web/strawberry/helpers/validators.py
-"""
-Validadores específicos del feature USERS
-"""
-
 import re
 from src.core.exceptions.base_exceptions import ValidationException
 
 
 def validate_user_name(name: str, field_name: str, min_length: int = 1, max_length: int = 50) -> str:
-    """
-    Validate user names (first_name, last_name) - ESPECÍFICO DE USERS
-
-    Reglas de negocio específicas para nombres de usuario:
-    - Solo letras, espacios, guiones y apostrofes
-    - Longitud entre 1 y 50 caracteres
-    """
     if not name or not isinstance(name, str):
         raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
 
@@ -38,11 +26,6 @@ def validate_user_name(name: str, field_name: str, min_length: int = 1, max_leng
 
 
 def validate_user_password(password: str, field_name: str = "Password") -> str:
-    """
-    Basic password validation for USERS feature
-
-    Nota: Django hará la validación completa, esto es solo validación básica
-    """
     if not password or not isinstance(password, str):
         raise ValidationException(f"{field_name} is required", error_code="FIELD_REQUIRED")
 
@@ -59,14 +42,6 @@ def validate_user_password(password: str, field_name: str = "Password") -> str:
 
 
 def validate_user_email_uniqueness(email: str) -> str:
-    """
-    Validate email format for USERS feature
-
-    Podría tener reglas específicas de users como:
-    - Dominios bloqueados
-    - Formatos específicos de empresa
-    """
-    # Por ahora solo usa la validación genérica
     from src.core.infrastructure.web.strawberry.helpers.validators import validate_email_format
 
     return validate_email_format(email, "User Email")

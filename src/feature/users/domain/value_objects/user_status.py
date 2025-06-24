@@ -1,10 +1,7 @@
-# src/feature/users/domain/value_objects/user_status.py
 from enum import Enum
 
 
 class UserStatus(Enum):
-    """Estados posibles de un usuario"""
-
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"

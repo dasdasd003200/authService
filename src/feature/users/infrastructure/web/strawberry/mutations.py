@@ -1,8 +1,3 @@
-# 1. src/feature/users/infrastructure/web/strawberry/mutations.py
-"""
-User Mutations - IMPORT CORREGIDO
-"""
-
 import strawberry
 from ...dependency_injection import get_create_user_use_case, get_update_user_use_case, get_delete_user_use_case
 from src.feature.users.application.use_cases.create_user import CreateUserCommand
@@ -27,8 +22,6 @@ from .converters import convert_create_result_to_user_type, convert_result_to_ty
 
 @strawberry.type
 class UserMutations:
-    """User mutations - IMPORT CORREGIDO"""
-
     @strawberry.mutation
     async def create_user(self, input: CreateUserInput) -> CreateUserResponse:
         """Create user"""
@@ -55,7 +48,6 @@ class UserMutations:
 
     @strawberry.mutation
     async def update_user(self, input: UpdateUserInput) -> UpdateUserResponse:
-        """Update user"""
         try:
             validated_data = process_update_user_input(input)
             use_case = get_update_user_use_case()  # ✅ Ahora funciona
@@ -91,4 +83,3 @@ class UserMutations:
 
         except Exception as e:
             return create_error_response(DeleteUserResponse, e)
-

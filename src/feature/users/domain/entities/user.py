@@ -1,4 +1,3 @@
-# src/feature/users/domain/entities/user.py - CORREGIDO SIN PASSWORD LOGIC
 from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
@@ -9,8 +8,6 @@ from src.feature.users.domain.value_objects.user_status import UserStatus
 
 
 class User(BaseEntity):
-    """User domain entity - SIN password management (Django handles it)"""
-
     def __init__(
         self,
         email: Email,
@@ -100,6 +97,3 @@ class User(BaseEntity):
             self.last_name = last_name.strip()
         self.update_timestamp()
         self._validate()
-
-    # ELIMINADO: verify_password, change_password - Django handles this
-

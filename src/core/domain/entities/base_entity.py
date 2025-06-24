@@ -1,4 +1,3 @@
-# src/core/domain/entities/base_entity.py
 from abc import ABC
 from datetime import datetime, timezone
 from uuid import uuid4, UUID
@@ -29,4 +28,3 @@ class BaseEntity(ABC):
 
     def __hash__(self):
         return hash(self.id)
-

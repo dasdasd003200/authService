@@ -1,5 +1,3 @@
-# src/feature/users/application/use_cases/delete_user.py - ACTUALIZADO IMPORTS
-
 from src.core.application.use_cases.base import DeleteEntityUseCase
 from src.feature.users.domain.entities.user import User
 from src.feature.users.domain.repositories.user_repository import UserRepository
@@ -10,7 +8,3 @@ class DeleteUserUseCase(DeleteEntityUseCase[User]):
 
     def __init__(self, user_repository: UserRepository):
         super().__init__(user_repository, "User")
-
-    # No additional code needed! Base class handles everything.
-    # If you need custom logic, override execute method.
-

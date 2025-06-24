@@ -1,4 +1,3 @@
-# src/feature/users/infrastructure/database/mappers/user_mapper.py
 from typing import Dict, Any
 
 from src.core.domain.value_objects.email import Email
@@ -9,21 +8,7 @@ from src.feature.users.infrastructure.database.models import UserModel
 
 
 class UserEntityMapper(BaseEntityMapper[User, UserModel]):
-    """
-    User-specific mapper - SOLO conversión específica de User
-
-    Conoce:
-    - Estructura específica de UserModel
-    - Estructura específica de User entity
-    - Value objects específicos de User (Email, UserStatus)
-
-    NO conoce:
-    - Persistencia (eso es del repository)
-    - Lógica de negocio compleja (eso es de services)
-    """
-
     def model_to_entity(self, model: UserModel) -> User:
-        """Convert UserModel to User entity"""
         return User(
             id=model.id,
             email=Email(model.email),
@@ -38,7 +23,6 @@ class UserEntityMapper(BaseEntityMapper[User, UserModel]):
         )
 
     def entity_to_model_data(self, user: User) -> Dict[str, Any]:
-        """Convert User entity to UserModel data dict"""
         return {
             "id": user.id,
             "email": str(user.email),

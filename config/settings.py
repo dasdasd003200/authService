@@ -3,12 +3,10 @@ from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
-# Application definition - EXPLÍCITO (como debe ser)
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -76,20 +74,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# Internationalization
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# JWT Settings
 JWT_SECRET_KEY = config("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast=int)
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)

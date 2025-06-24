@@ -1,17 +1,9 @@
-"""
-Users Module - SOLO configuración de DI
-"""
-
 from config.services import ServiceRegistry
 
 
 class UsersModule:
-    """Module que configura servicios de Users - SOLO DI"""
-
     @staticmethod
     def configure():
-        """Configurar servicios DI del feature Users"""
-
         # Repository (singleton)
         ServiceRegistry.register("users.repository", UsersModule._create_user_repository)
 
@@ -67,4 +59,3 @@ class UsersModule:
         from src.feature.users.application.use_cases.update_user import DeactivateUserUseCase
 
         return DeactivateUserUseCase(ServiceRegistry.get("users.repository"))
-

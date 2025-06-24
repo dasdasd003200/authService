@@ -1,15 +1,9 @@
-# src/core/domain/repositories/criteria/text_search_criteria.py - CORREGIDO
 from typing import List
-
-# from functools import reduce
-# import operator
 from django.db.models import QuerySet, Q
 from ..base_criteria import BaseCriteria
 
 
 class TextSearchCriteria(BaseCriteria):
-    """Criteria for text search across multiple fields"""
-
     def __init__(self, search_term: str, fields: List[str]):
         self.search_term = search_term.strip()
         self.fields = fields

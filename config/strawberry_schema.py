@@ -1,8 +1,3 @@
-# config/strawberry_schema.py
-"""
-Main Strawberry GraphQL schema.
-"""
-
 import strawberry
 
 from src.feature.users.infrastructure.web.strawberry.mutations import UserMutations
@@ -26,7 +21,6 @@ class Mutation(UserMutations):
     pass
 
 
-# Create the schema
 schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,

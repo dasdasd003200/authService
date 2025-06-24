@@ -1,8 +1,3 @@
-# 1. config/services.py (SOLO LO GENÉRICO)
-"""
-Service Registry - Solo funcionalidad genérica
-"""
-
 from typing import Dict, Any, Callable
 import threading
 
@@ -46,4 +41,3 @@ class ServiceRegistry:
         """Reset para testing"""
         cls._services.clear()
         cls._factories.clear()
-

@@ -1,25 +1,16 @@
-# src/core/infrastructure/web/strawberry/helpers/converters.py - LIMPIO
-"""
-Utilities for converting between different data types in GraphQL context
-SOLO FUNCIONES GENÉRICAS REUTILIZABLES
-"""
-
 from typing import Optional, Any, Type
 from uuid import UUID
 
 
 def safe_uuid_str(uuid_obj: Optional[UUID]) -> str:
-    """Convert UUID to string safely"""
     return str(uuid_obj) if uuid_obj else ""
 
 
 def safe_str(obj: Any) -> str:
-    """Convert any object to string safely"""
     return str(obj) if obj is not None else ""
 
 
 def safe_int(value: Any, default: int = 0) -> int:
-    """Convert to int safely"""
     try:
         return int(value) if value is not None else default
     except (ValueError, TypeError):
@@ -27,7 +18,6 @@ def safe_int(value: Any, default: int = 0) -> int:
 
 
 def convert_domain_enum_to_graphql(domain_value: str, graphql_enum_class) -> Any:
-    """Convert domain enum value to GraphQL enum - GENÉRICO"""
     try:
         for enum_item in graphql_enum_class:
             if enum_item.value == domain_value:
@@ -38,5 +28,4 @@ def convert_domain_enum_to_graphql(domain_value: str, graphql_enum_class) -> Any
 
 
 def convert_datetime_to_iso(dt) -> Optional[str]:
-    """Convert datetime to ISO string safely"""
     return dt.isoformat() if dt else None

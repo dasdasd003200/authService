@@ -1,10 +1,5 @@
-# src/core/domain/repositories/criteria/factory.py
-"""Factory for creating common criteria easily"""
-
 from typing import List, Any, Optional
 from datetime import datetime
-
-
 from .implementations.text_search_criteria import TextSearchCriteria
 from .implementations.status_criteria import StatusCriteria
 from .implementations.boolean_criteria import BooleanCriteria
@@ -16,8 +11,6 @@ from .implementations.pagination_criteria import PaginationCriteria
 
 
 class CriteriaFactory:
-    """Factory for creating criteria objects"""
-
     @staticmethod
     def text_search(search_term: str, fields: List[str]) -> TextSearchCriteria:
         return TextSearchCriteria(search_term, fields)

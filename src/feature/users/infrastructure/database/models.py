@@ -1,4 +1,3 @@
-# src/feature/users/infrastructure/database/models.py
 import uuid
 from typing import Any, Optional
 from django.db import models
@@ -19,7 +18,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         if password:
-            user.set_password(password)  # This uses Django's password hashing
+            user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -71,10 +70,6 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 
-    # REMOVED: Custom password fields - using Django's built-in password field
-    # password_hash = models.CharField(max_length=255, verbose_name="Password Hash", blank=True)
-    # password_salt = models.CharField(max_length=64, verbose_name="Password Salt", blank=True)
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
@@ -97,10 +92,8 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
 
     @property
     def full_name(self) -> str:
-        """Return user's full name"""
         return f"{self.first_name} {self.last_name}"
 
     def clean(self):
-        """Clean method for validation"""
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)

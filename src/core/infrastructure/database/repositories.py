@@ -1,10 +1,8 @@
-# src/core/infrastructure/database/repositories.py - IMPLEMENTACIÓN COMPLETA
 from typing import Type, Optional, List, Dict, Any, TypeVar
 from uuid import UUID
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import sync_to_async
-
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
 from src.shared.criteria.base_criteria import BaseCriteria
@@ -14,8 +12,6 @@ T = TypeVar("T", bound=BaseEntity)
 
 
 class DjangoBaseRepository(BaseRepository[T]):
-    """Django implementation - TODAS las operaciones CRUD"""
-
     def __init__(self, model_class: Type[models.Model], mapper: BaseEntityMapper[T, models.Model]):
         self.model_class = model_class
         self.mapper = mapper

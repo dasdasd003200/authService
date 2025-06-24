@@ -1,10 +1,4 @@
-# src/core/application/use_cases/base/get_entity.py
-"""
-Base use case for retrieving entities by ID
-"""
-
 from typing import TypeVar, Generic, Optional
-
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
 from src.core.exceptions.base_exceptions import NotFoundError

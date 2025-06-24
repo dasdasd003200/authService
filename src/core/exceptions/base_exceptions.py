@@ -1,4 +1,3 @@
-# src/core/exceptions/base_exceptions.py
 from typing import Optional, Dict, Any
 
 

@@ -1,8 +1,3 @@
-# src/feature/users/infrastructure/web/strawberry/converters.py - ACTUALIZADO
-"""
-Entity to GraphQL converters - USANDO HELPERS MODULARES
-"""
-
 from src.core.infrastructure.web.strawberry.helpers.converters import (
     safe_uuid_str,
     safe_str,
@@ -13,7 +8,6 @@ from .types import UserType
 
 
 def convert_user_to_type(user) -> UserType:
-    """Convert domain user entity to GraphQL type"""
     return UserType(
         id=safe_uuid_str(user.id),
         email=safe_str(user.email),
@@ -30,7 +24,6 @@ def convert_user_to_type(user) -> UserType:
 
 
 def convert_result_to_type(result) -> UserType:
-    """Convert use case result to GraphQL type"""
     return UserType(
         id=result.user_id,
         email=result.email,
@@ -47,7 +40,6 @@ def convert_result_to_type(result) -> UserType:
 
 
 def convert_create_result_to_user_type(result) -> UserType:
-    """Convert create result to GraphQL type"""
     return UserType(
         id=result.user_id,
         email=result.email,

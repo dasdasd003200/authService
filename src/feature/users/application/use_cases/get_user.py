@@ -1,4 +1,3 @@
-# src/feature/users/application/use_cases/get_user.py - ACTUALIZADO IMPORTS
 from dataclasses import dataclass
 from typing import Optional
 
@@ -11,15 +10,11 @@ from src.feature.users.domain.repositories.user_repository import UserRepository
 
 @dataclass
 class GetUserByEmailQuery:
-    """Query for getting user by email"""
-
     email: str
 
 
 @dataclass
 class GetUserResult:
-    """Result of getting user"""
-
     user_id: str
     email: str
     first_name: str
@@ -32,8 +27,6 @@ class GetUserResult:
 
 
 class GetUserUseCase(GetEntityByIdUseCase[User]):
-    """Use case for retrieving users - inherits get_by_id functionality"""
-
     def __init__(self, user_repository: UserRepository):
         super().__init__(user_repository, "User")
         self.user_repository = user_repository
@@ -61,4 +54,3 @@ class GetUserUseCase(GetEntityByIdUseCase[User]):
             last_login=user.last_login.isoformat() if user.last_login else None,
             failed_login_attempts=user.failed_login_attempts,
         )
-

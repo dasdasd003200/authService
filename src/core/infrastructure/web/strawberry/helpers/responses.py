@@ -1,15 +1,8 @@
-# src/core/infrastructure/web/strawberry/helpers/responses.py
-"""
-GraphQL response utilities and pagination helpers
-"""
-
 from typing import Dict, Any, List, Type, Optional
 import strawberry
 
 
 def create_base_response_type(name: str, data_type: Optional[Type] = None):
-    """Factory to create GraphQL response types"""
-
     @strawberry.type(name=name)
     class BaseResponse:
         success: bool = strawberry.field(description="Operation success status")
@@ -25,14 +18,12 @@ def create_base_response_type(name: str, data_type: Optional[Type] = None):
 
 
 def create_pagination_response(items: list, total_count: int, page: int, page_size: int) -> Dict[str, Any]:
-    """Create standardized pagination response"""
     total_pages = (total_count + page_size - 1) // page_size
 
     return {"items": items, "pagination": {"current_page": page, "page_size": page_size, "total_items": total_count, "total_pages": total_pages, "has_next": page < total_pages, "has_previous": page > 1}}
 
 
 def extract_domain_errors(errors: list) -> Dict[str, str]:
-    """Extract domain validation errors into field-specific format"""
     error_dict = {}
     for error in errors:
         if hasattr(error, "field") and hasattr(error, "message"):

@@ -3,8 +3,6 @@ from ..base_criteria import BaseCriteria
 
 
 class PaginationCriteria(BaseCriteria):
-    """Criteria for pagination"""
-
     def __init__(self, limit: int, offset: int):
         self.limit = limit
         self.offset = offset

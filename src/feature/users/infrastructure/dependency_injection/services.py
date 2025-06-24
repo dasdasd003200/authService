@@ -1,14 +1,7 @@
-# 3. src/feature/users/infrastructure/dependency_injection/services.py
-"""
-User Services - Facade para acceso fácil a servicios del feature
-"""
-
 from config.services import ServiceRegistry
 
 
 class UserServices:
-    """Facade para servicios de Users"""
-
     @staticmethod
     def get_create_use_case():
         return ServiceRegistry.create("users.create_use_case")
@@ -57,4 +50,3 @@ def get_search_users_use_case():
 
 def get_deactivate_user_use_case():
     return UserServices.get_deactivate_use_case()
-

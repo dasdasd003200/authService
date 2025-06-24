@@ -1,4 +1,3 @@
-# src/feature/users/domain/repositories/user_repository.py - AGREGADO password methods
 from abc import abstractmethod
 from typing import Optional
 from uuid import UUID
@@ -11,7 +10,6 @@ from src.feature.users.domain.entities.user import User
 class UserRepository(BaseRepository[User]):
     """User repository interface - with password management methods"""
 
-    # User-specific query methods
     @abstractmethod
     async def find_by_email(self, email: Email) -> Optional[User]:
         """Find user by email"""
@@ -22,7 +20,6 @@ class UserRepository(BaseRepository[User]):
         """Check if user exists by email"""
         pass
 
-    # Password management methods (Django-specific)
     @abstractmethod
     async def save_with_password(self, entity: User, plain_password: str) -> User:
         """Save user entity with password using Django's hashing"""
@@ -37,4 +34,3 @@ class UserRepository(BaseRepository[User]):
     async def change_password(self, user_id: UUID, new_plain_password: str) -> bool:
         """Change user password using Django's hashing"""
         pass
-
