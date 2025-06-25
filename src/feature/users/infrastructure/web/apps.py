@@ -8,11 +8,12 @@ class UsersConfig(AppConfig):
     verbose_name = "Users Management"
 
     def ready(self):
-        self._configure_dependency_injection()
-        self._configure_feature_settings()
-        from src.feature.users.infrastructure.database import models
+        # Configure this feature's DI using the new module
+        from ...module import UserModule
 
-        print("✅ Users app fully configured")
+        UserModule.configure_dependency_injection()
+
+        print("✅ Users feature configured with clean architecture")
 
     def _configure_dependency_injection(self):
         from src.feature.users.infrastructure.dependency_injection.module import UsersModule

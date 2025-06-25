@@ -1,11 +1,17 @@
+# ===== MODIFICAR: config/strawberry_schema.py =====
 import strawberry
-
-from src.feature.users.infrastructure.web.strawberry.mutations import UserMutations
-from src.feature.users.infrastructure.web.strawberry.queries import UserQueries
+from src.feature.users.presentation.graphql.resolvers.mutations.create import UserCreateResolver
+from src.feature.users.presentation.graphql.resolvers.mutations.update import UserUpdateResolver
+from src.feature.users.presentation.graphql.resolvers.mutations.delete import UserDeleteResolver
+from src.feature.users.presentation.graphql.resolvers.queries.find import UserFindResolver
+from src.feature.users.presentation.graphql.resolvers.queries.find_one import UserFindOneResolver
 
 
 @strawberry.type
-class Query(UserQueries):
+class Query(
+    UserFindResolver,
+    UserFindOneResolver,
+):
     """Main GraphQL queries"""
 
     @strawberry.field
@@ -15,7 +21,11 @@ class Query(UserQueries):
 
 
 @strawberry.type
-class Mutation(UserMutations):
+class Mutation(
+    UserCreateResolver,
+    UserUpdateResolver,
+    UserDeleteResolver,
+):
     """Main GraphQL mutations"""
 
     pass
@@ -25,3 +35,4 @@ schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
 )
+

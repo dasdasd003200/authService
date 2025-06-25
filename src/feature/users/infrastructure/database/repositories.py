@@ -1,4 +1,5 @@
-from typing import Optional
+# ===== MODIFICAR: src/feature/users/infrastructure/database/repositories.py =====
+from typing import Optional, List  # ✅ Agregar List aquí
 from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
@@ -31,7 +32,9 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
     async def save_with_password(self, entity: User, plain_password: str) -> User:
         data = self.mapper.entity_to_model_data(entity)
 
-        model, created = await sync_to_async(self.model_class.objects.update_or_create)(id=entity.id, defaults=data)
+        model, _ = await sync_to_async(self.model_class.objects.update_or_create)(  # ✅ Usar _ en lugar de created
+            id=entity.id, defaults=data
+        )
 
         model.set_password(plain_password)
         await sync_to_async(model.save)()
@@ -53,3 +56,17 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
             return True
         except ObjectDoesNotExist:
             return False
+
+    # ===== NEW METHODS FOR CLEAN ARCHITECTURE =====
+    async def find_by_criteria(self, criteria: List) -> List[User]:  # ✅ List ya importado
+        """Find users by criteria - adapter for new architecture"""
+        return await super().find_by_criteria(criteria)
+
+    async def count_by_criteria(self, criteria: List) -> int:  # ✅ List ya importado
+        """Count users by criteria - adapter for new architecture"""
+        return await super().count_by_criteria(criteria)
+
+    async def delete_by_id(self, user_id: UUID) -> bool:
+        """Delete user by ID - adapter for new architecture"""
+        return await super().delete_by_id(user_id)
+

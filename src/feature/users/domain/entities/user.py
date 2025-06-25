@@ -8,6 +8,11 @@ from src.feature.users.domain.value_objects.user_status import UserStatus
 
 
 class User(BaseEntity):
+    """
+    User Domain Entity - Pure business logic
+    Esta es la entidad de DOMINIO, no la de GraphQL
+    """
+
     def __init__(
         self,
         email: Email,
@@ -97,3 +102,4 @@ class User(BaseEntity):
             self.last_name = last_name.strip()
         self.update_timestamp()
         self._validate()
+
