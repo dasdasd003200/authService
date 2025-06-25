@@ -1,39 +1,42 @@
+# src/feature/users/infrastructure/services/find.py
 from typing import List
 
-from src.shared.criteria.factory import CriteriaFactory
-from src.shared.criteria.base_criteria import CriteriaBuilder
-from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.inputs.find import UserFindInput
-from src.feature.users.domain.types.find import UserFindResponse, UserFindData
-from src.feature.users.domain.schemes.user import UserGraphQLType  # ✅ USAR NUEVO NOMBRE
-from src.feature.users.domain.enums.status import UserStatus as GraphQLUserStatus
-from src.feature.users.domain.value_objects.user_status import UserStatus
-from src.feature.users.infrastructure.converters.user_converter import UserConverter
+from ...application.use_cases.user_use_cases import UserUseCases
+from ...domain.inputs.find import UserFindInput
+from ...domain.types.find import UserFindResponse, UserFindData
+from ..converters.user_converter import UserConverter
+from src.shared.criteria.factory import CriteriaFactory  # ✅ CORRECTO: desde shared
+from src.shared.criteria.base_criteria import CriteriaBuilder  # ✅ CORRECTO: desde shared
+from src.core.exceptions.base_exceptions import BaseDomainException  # ✅ CORRECTO: desde core
 
 
 class UserFindService:
-    def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+    """Infrastructure Service - Adapter for user search"""
+
+    def __init__(self, user_use_cases: UserUseCases):
+        self.user_use_cases = user_use_cases
 
     async def dispatch(self, input: UserFindInput) -> UserFindResponse:
-        """Dispatch find users operation"""
+        """Adapter method: GraphQL input → Use Case → GraphQL response"""
         try:
-            # Build criteria
+            # Build criteria from GraphQL input
             criteria = self._build_criteria(input)
 
-            # Find users
-            users = await self.user_repository.find_by_criteria(criteria)
-            total_count = await self.user_repository.count_by_criteria(criteria)
+            # Call Application Use Case
+            users, total_count = await self.user_use_cases.find_users_with_criteria(criteria)
 
-            user_schemes = UserConverter.entities_to_graphql(users)
+            # Convert to GraphQL response
+            user_graphql_list = UserConverter.entities_to_graphql(users)
 
-            return UserFindResponse(success=True, data=UserFindData(users=user_schemes), total_count=total_count, message="Users retrieved successfully")
+            return UserFindResponse(success=True, data=UserFindData(users=user_graphql_list), total_count=total_count, message="Users retrieved successfully")
 
+        except BaseDomainException as e:
+            return UserFindResponse(success=False, data=UserFindData(users=[]), total_count=0, message=e.message, error_code=e.error_code)
         except Exception as e:
             return UserFindResponse(success=False, data=UserFindData(users=[]), total_count=0, message=str(e), error_code="FIND_ERROR")
 
     def _build_criteria(self, input: UserFindInput) -> List:
-        """Build criteria from input"""
+        """Build criteria from GraphQL input - Infrastructure concern"""
         criteria_builder = CriteriaBuilder()
 
         # Filters
@@ -55,3 +58,4 @@ class UserFindService:
             criteria_builder.add(CriteriaFactory.order_by(input.order_by))
 
         return criteria_builder.build()
+

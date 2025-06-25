@@ -1,40 +1,42 @@
+# src/feature/users/infrastructure/services/create.py
 from typing import Dict, Any
 
-from src.core.domain.value_objects.email import Email
-from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.entities.user import User
-from src.feature.users.domain.value_objects.user_status import UserStatus
-from src.feature.users.domain.inputs.create import UserCreateInput
-from src.feature.users.domain.types.create import UserCreateResponse
-from src.feature.users.domain.schemes.user import UserGraphQLType
-from src.feature.users.domain.enums.status import UserStatus as GraphQLUserStatus
-from src.feature.users.infrastructure.converters.user_converter import UserConverter
+from ...application.use_cases.user_use_cases import UserUseCases
+from ...domain.inputs.create import UserCreateInput
+from ...domain.types.create import UserCreateResponse
+from ..converters.user_converter import UserConverter
+from src.core.exceptions.base_exceptions import BaseDomainException  # ✅ CORRECTO: desde core
 
 
 class UserCreateService:
-    def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+    """
+    Infrastructure Service - Adapter between GraphQL and Application layer
+
+    RESPONSABILIDADES:
+    - Convertir GraphQL inputs a domain types
+    - Llamar Use Cases (Application layer)
+    - Convertir domain entities a GraphQL responses
+    - Manejar errores y crear responses adecuadas
+    - NO lógica de negocio (eso va en Use Cases)
+    """
+
+    def __init__(self, user_use_cases: UserUseCases):
+        self.user_use_cases = user_use_cases
 
     async def dispatch(self, input: UserCreateInput, user_context: Dict[str, Any]) -> UserCreateResponse:
-        """Dispatch create user operation"""
+        """
+        Adapter method: GraphQL input → Use Case → GraphQL response
+        """
         try:
-            email = Email(input.email)
-            if await self.user_repository.exists_by_email(email):
-                return UserCreateResponse(success=False, message=f"User with email {input.email} already exists", error_code="USER_ALREADY_EXISTS")
+            # Call Application Use Case (business logic)
+            user = await self.user_use_cases.create_user(email=input.email, password=input.password, first_name=input.first_name, last_name=input.last_name, email_verified=input.email_verified)
 
-            user = User(
-                email=email,
-                first_name=input.first_name,
-                last_name=input.last_name,
-                status=UserStatus.PENDING_VERIFICATION if not input.email_verified else UserStatus.ACTIVE,
-                email_verified=input.email_verified,
-            )
+            # Convert domain entity to GraphQL type
+            user_graphql = UserConverter.entity_to_graphql(user)
 
-            saved_user = await self.user_repository.save_with_password(user, input.password)
+            return UserCreateResponse(success=True, data=user_graphql, message="User created successfully")
 
-            user_scheme = UserConverter.entity_to_graphql(saved_user)
-
-            return UserCreateResponse(success=True, data=user_scheme, message="User created successfully")
-
+        except BaseDomainException as e:
+            return UserCreateResponse(success=False, message=e.message, error_code=e.error_code)
         except Exception as e:
             return UserCreateResponse(success=False, message=str(e), error_code="CREATE_ERROR")

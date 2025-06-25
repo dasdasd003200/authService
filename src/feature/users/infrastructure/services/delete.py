@@ -1,29 +1,31 @@
-from uuid import UUID
+# src/feature/users/infrastructure/services/delete.py
 from typing import Dict, Any
+from uuid import UUID
 
-from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.types.delete import UserDeleteResponse
+from ...application.use_cases.user_use_cases import UserUseCases
+from ...domain.types.delete import UserDeleteResponse
+from src.core.exceptions.base_exceptions import BaseDomainException  # ✅ CORRECTO: desde core
 
 
 class UserDeleteService:
-    def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+    """Infrastructure Service - Adapter for user deletion"""
+
+    def __init__(self, user_use_cases: UserUseCases):
+        self.user_use_cases = user_use_cases
 
     async def dispatch(self, user_id: str, user_context: Dict[str, Any]) -> UserDeleteResponse:
-        """Dispatch delete user operation"""
+        """Adapter method: GraphQL input → Use Case → GraphQL response"""
         try:
-            entity_id = UUID(user_id)
-            user = await self.user_repository.find_by_id(entity_id)
-
-            if not user:
-                return UserDeleteResponse(success=False, message=f"User with ID {user_id} not found", error_code="USER_NOT_FOUND")
-
-            deleted = await self.user_repository.delete_by_id(entity_id)
+            # Call Application Use Case
+            deleted = await self.user_use_cases.delete_user(UUID(user_id))
 
             if deleted:
                 return UserDeleteResponse(success=True, message="User deleted successfully")
             else:
                 return UserDeleteResponse(success=False, message="Failed to delete user", error_code="DELETE_FAILED")
 
+        except BaseDomainException as e:
+            return UserDeleteResponse(success=False, message=e.message, error_code=e.error_code)
         except Exception as e:
             return UserDeleteResponse(success=False, message=str(e), error_code="DELETE_ERROR")
+

@@ -1,8 +1,8 @@
 import strawberry
-from src.feature.users.domain.inputs.update import UserUpdateInput  # ✅ IMPORT ABSOLUTO
+
+from src.feature.users.domain.inputs.update import UserUpdateInput
 from src.feature.users.domain.types.update import UserUpdateResponse
-from src.feature.users.domain.cqrs.commands import UserUpdateCommand
-from src.feature.users.application.command_handlers.update import UserUpdateCommandHandler
+from src.feature.users.application.use_cases.user_use_cases import UserUseCases
 from src.feature.users.infrastructure.services.update import UserUpdateService
 from src.feature.users.infrastructure.database.repositories import DjangoUserRepository
 
@@ -12,12 +12,8 @@ class UserUpdateResolver:
     @strawberry.mutation
     async def user_update(self, input: UserUpdateInput) -> UserUpdateResponse:
         """Update an existing user"""
-        # Service injection
         repository = DjangoUserRepository()
-        service = UserUpdateService(repository)
-        handler = UserUpdateCommandHandler(service)
-
-        # Execute command
-        command = UserUpdateCommand(input=input, user_context={})
-        return await handler.execute(command)
+        use_cases = UserUseCases(repository)
+        service = UserUpdateService(use_cases)
+        return await service.dispatch(input, user_context={})
 

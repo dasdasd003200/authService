@@ -1,36 +1,33 @@
-from uuid import UUID
+# src/feature/users/infrastructure/services/update.py
 from typing import Dict, Any
+from uuid import UUID
 
-from src.feature.users.domain.repositories.user_repository import UserRepository
-from src.feature.users.domain.inputs.update import UserUpdateInput
-from src.feature.users.domain.types.update import UserUpdateResponse
-from src.feature.users.domain.schemes.user import UserGraphQLType  # ✅ USAR NUEVO NOMBRE
-from src.feature.users.domain.enums.status import UserStatus as GraphQLUserStatus
-from src.feature.users.domain.value_objects.user_status import UserStatus
-from src.feature.users.infrastructure.converters.user_converter import UserConverter
+from ...application.use_cases.user_use_cases import UserUseCases
+from ...domain.inputs.update import UserUpdateInput
+from ...domain.types.update import UserUpdateResponse
+from ..converters.user_converter import UserConverter
+from src.core.exceptions.base_exceptions import BaseDomainException  # ✅ CORRECTO: desde core
 
 
 class UserUpdateService:
-    def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+    """Infrastructure Service - Adapter for user updates"""
+
+    def __init__(self, user_use_cases: UserUseCases):
+        self.user_use_cases = user_use_cases
 
     async def dispatch(self, input: UserUpdateInput, user_context: Dict[str, Any]) -> UserUpdateResponse:
-        """Dispatch update user operation"""
+        """Adapter method: GraphQL input → Use Case → GraphQL response"""
         try:
-            # Find user
-            user_id = UUID(input.user_id)
-            user = await self.user_repository.find_by_id(user_id)
+            # Call Application Use Case
+            user = await self.user_use_cases.update_user(user_id=UUID(input.user_id), first_name=input.first_name, last_name=input.last_name)
 
-            if not user:
-                return UserUpdateResponse(success=False, message=f"User with ID {input.user_id} not found", error_code="USER_NOT_FOUND")
+            # Convert to GraphQL response
+            user_graphql = UserConverter.entity_to_graphql(user)
 
-            user.update_profile(first_name=input.first_name, last_name=input.last_name)
+            return UserUpdateResponse(success=True, data=user_graphql, message="User updated successfully")
 
-            updated_user = await self.user_repository.save(user)
-
-            user_scheme = UserConverter.entity_to_graphql(updated_user)
-
-            return UserUpdateResponse(success=True, data=user_scheme, message="User updated successfully")
-
+        except BaseDomainException as e:
+            return UserUpdateResponse(success=False, message=e.message, error_code=e.error_code)
         except Exception as e:
             return UserUpdateResponse(success=False, message=str(e), error_code="UPDATE_ERROR")
+

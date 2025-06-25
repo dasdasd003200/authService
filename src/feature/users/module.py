@@ -1,21 +1,15 @@
-# ===== CREAR: src/feature/users/module.py =====
+# src/feature/users/module.py
 """
-Users module following the clean architecture pattern
-This structure allows easy replication of other features
+Users module following Clean Architecture
+Structure: Presentation → Infrastructure Services → Application Use Cases → Domain ← Infrastructure Repositories
 """
 
-from .application.command_handlers.create import UserCreateCommandHandler
-from .application.command_handlers.update import UserUpdateCommandHandler
-from .application.command_handlers.delete import UserDeleteCommandHandler
-from .application.query_handlers.find import UserFindQueryHandler
-from .application.query_handlers.find_one import UserFindOneQueryHandler
-
+from .application.use_cases.user_use_cases import UserUseCases
 from .infrastructure.services.create import UserCreateService
 from .infrastructure.services.update import UserUpdateService
 from .infrastructure.services.delete import UserDeleteService
 from .infrastructure.services.find import UserFindService
 from .infrastructure.services.find_one import UserFindOneService
-
 from .infrastructure.database.repositories import DjangoUserRepository
 from .presentation.graphql.resolvers.mutations.create import UserCreateResolver
 from .presentation.graphql.resolvers.mutations.update import UserUpdateResolver
@@ -26,24 +20,13 @@ from .presentation.graphql.resolvers.queries.find_one import UserFindOneResolver
 
 class UserModule:
     """
-    Users module configuration
-    Pattern: Each feature has its own independent module
+    Users module configuration - Clean Architecture compliant
     """
 
-    # Command Handlers
-    command_handlers = [
-        UserCreateCommandHandler,
-        UserUpdateCommandHandler,
-        UserDeleteCommandHandler,
-    ]
+    # Application Layer
+    use_cases = [UserUseCases]
 
-    # Query Handlers
-    query_handlers = [
-        UserFindQueryHandler,
-        UserFindOneQueryHandler,
-    ]
-
-    # Services
+    # Infrastructure Services (Adapters)
     services = [
         UserCreateService,
         UserUpdateService,
@@ -52,7 +35,7 @@ class UserModule:
         UserFindOneService,
     ]
 
-    # GraphQL Resolvers
+    # GraphQL Resolvers (Presentation)
     resolvers = [
         UserCreateResolver,
         UserUpdateResolver,
@@ -61,7 +44,7 @@ class UserModule:
         UserFindOneResolver,
     ]
 
-    # Repository
+    # Repository (Infrastructure)
     repository = DjangoUserRepository
 
     @classmethod
@@ -72,84 +55,56 @@ class UserModule:
         # Repository (singleton)
         ServiceRegistry.register("users.repository", cls._create_repository)
 
-        # Services (transient)
+        # Use Cases (transient - depends on repository)
+        ServiceRegistry.register("users.use_cases", cls._create_use_cases)
+
+        # Infrastructure Services (transient - depends on use cases)
         ServiceRegistry.register("users.create_service", cls._create_create_service)
         ServiceRegistry.register("users.update_service", cls._create_update_service)
         ServiceRegistry.register("users.delete_service", cls._create_delete_service)
         ServiceRegistry.register("users.find_service", cls._create_find_service)
         ServiceRegistry.register("users.find_one_service", cls._create_find_one_service)
 
-        # Command Handlers (transient)
-        ServiceRegistry.register("users.create_handler", cls._create_create_handler)
-        ServiceRegistry.register("users.update_handler", cls._create_update_handler)
-        ServiceRegistry.register("users.delete_handler", cls._create_delete_handler)
+        print("✅ Users module configured with Clean Architecture")
 
-        # Query Handlers (transient)
-        ServiceRegistry.register("users.find_handler", cls._create_find_handler)
-        ServiceRegistry.register("users.find_one_handler", cls._create_find_one_handler)
-
-        print("✅ Users: DI services registered")
-
+    # ===== FACTORY METHODS =====
     @staticmethod
     def _create_repository():
         return DjangoUserRepository()
 
     @staticmethod
+    def _create_use_cases():
+        from config.services import ServiceRegistry
+
+        return UserUseCases(ServiceRegistry.get("users.repository"))
+
+    @staticmethod
     def _create_create_service():
         from config.services import ServiceRegistry
 
-        return UserCreateService(ServiceRegistry.get("users.repository"))
+        return UserCreateService(ServiceRegistry.get("users.use_cases"))
 
     @staticmethod
     def _create_update_service():
         from config.services import ServiceRegistry
 
-        return UserUpdateService(ServiceRegistry.get("users.repository"))
+        return UserUpdateService(ServiceRegistry.get("users.use_cases"))
 
     @staticmethod
     def _create_delete_service():
         from config.services import ServiceRegistry
 
-        return UserDeleteService(ServiceRegistry.get("users.repository"))
+        return UserDeleteService(ServiceRegistry.get("users.use_cases"))
 
     @staticmethod
     def _create_find_service():
         from config.services import ServiceRegistry
 
-        return UserFindService(ServiceRegistry.get("users.repository"))
+        return UserFindService(ServiceRegistry.get("users.use_cases"))
 
     @staticmethod
     def _create_find_one_service():
         from config.services import ServiceRegistry
 
-        return UserFindOneService(ServiceRegistry.get("users.repository"))
+        return UserFindOneService(ServiceRegistry.get("users.use_cases"))
 
-    @staticmethod
-    def _create_create_handler():
-        from config.services import ServiceRegistry
-
-        return UserCreateCommandHandler(ServiceRegistry.get("users.create_service"))
-
-    @staticmethod
-    def _create_update_handler():
-        from config.services import ServiceRegistry
-
-        return UserUpdateCommandHandler(ServiceRegistry.get("users.update_service"))
-
-    @staticmethod
-    def _create_delete_handler():
-        from config.services import ServiceRegistry
-
-        return UserDeleteCommandHandler(ServiceRegistry.get("users.delete_service"))
-
-    @staticmethod
-    def _create_find_handler():
-        from config.services import ServiceRegistry
-
-        return UserFindQueryHandler(ServiceRegistry.get("users.find_service"))
-
-    @staticmethod
-    def _create_find_one_handler():
-        from config.services import ServiceRegistry
-
-        return UserFindOneQueryHandler(ServiceRegistry.get("users.find_one_service"))
