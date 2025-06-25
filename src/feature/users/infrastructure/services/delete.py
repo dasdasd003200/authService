@@ -11,16 +11,13 @@ class UserDeleteService:
 
     async def dispatch(self, user_id: str, user_context: Dict[str, Any]) -> UserDeleteResponse:
         """Dispatch delete user operation"""
-        # ✅ user_context no se usa aquí pero es parte de la interfaz estándar
         try:
-            # Find user first
             entity_id = UUID(user_id)
             user = await self.user_repository.find_by_id(entity_id)
 
             if not user:
                 return UserDeleteResponse(success=False, message=f"User with ID {user_id} not found", error_code="USER_NOT_FOUND")
 
-            # Delete user
             deleted = await self.user_repository.delete_by_id(entity_id)
 
             if deleted:
@@ -30,4 +27,3 @@ class UserDeleteService:
 
         except Exception as e:
             return UserDeleteResponse(success=False, message=str(e), error_code="DELETE_ERROR")
-

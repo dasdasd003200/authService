@@ -8,6 +8,7 @@ from src.feature.users.domain.types.find import UserFindResponse, UserFindData
 from src.feature.users.domain.schemes.user import UserGraphQLType  # ✅ USAR NUEVO NOMBRE
 from src.feature.users.domain.enums.status import UserStatus as GraphQLUserStatus
 from src.feature.users.domain.value_objects.user_status import UserStatus
+from src.feature.users.infrastructure.converters.user_converter import UserConverter
 
 
 class UserFindService:
@@ -24,8 +25,7 @@ class UserFindService:
             users = await self.user_repository.find_by_criteria(criteria)
             total_count = await self.user_repository.count_by_criteria(criteria)
 
-            # Convert to schemes
-            user_schemes = [self._convert_to_scheme(user) for user in users]
+            user_schemes = UserConverter.entities_to_graphql(users)
 
             return UserFindResponse(success=True, data=UserFindData(users=user_schemes), total_count=total_count, message="Users retrieved successfully")
 
@@ -55,27 +55,3 @@ class UserFindService:
             criteria_builder.add(CriteriaFactory.order_by(input.order_by))
 
         return criteria_builder.build()
-
-    def _convert_to_scheme(self, user) -> UserGraphQLType:  # ✅ CAMBIAR TIPO RETORNO
-        """Convert domain entity to GraphQL scheme"""
-        graphql_status = GraphQLUserStatus.ACTIVE
-        if user.status == UserStatus.INACTIVE:
-            graphql_status = GraphQLUserStatus.INACTIVE
-        elif user.status == UserStatus.SUSPENDED:
-            graphql_status = GraphQLUserStatus.SUSPENDED
-        elif user.status == UserStatus.PENDING_VERIFICATION:
-            graphql_status = GraphQLUserStatus.PENDING_VERIFICATION
-
-        return UserGraphQLType(  # ✅ CAMBIAR CLASE
-            id=str(user.id),
-            email=str(user.email),
-            first_name=user.first_name,
-            last_name=user.last_name,
-            full_name=user.full_name,
-            status=graphql_status,
-            email_verified=user.email_verified,
-            last_login=user.last_login,
-            failed_login_attempts=user.failed_login_attempts,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-        )
