@@ -1,3 +1,9 @@
+# src/feature/users/infrastructure/graphql/user_resolvers.py
+"""
+Infrastructure Layer - GraphQL Resolvers
+UPDATED: Now uses consolidated UserService instead of 5 separate services
+"""
+
 import strawberry
 
 # Domain types
@@ -13,71 +19,90 @@ from ...domain.types.find_one import UserFindOneResponse
 
 # Application layer
 from ...application.use_cases.user_use_cases import UserUseCases
-
-# Infrastructure
-from ..services.create import UserCreateService
-from ..services.update import UserUpdateService
-from ..services.delete import UserDeleteService
-from ..services.find import UserFindService
-from ..services.find_one import UserFindOneService
 from ..database.repositories import DjangoUserRepository
+
+# CAMBIO: Import consolidated service instead of 5 separate services
+from ..services.user_service import UserService
+
+# REMOVED: No longer needed individual services
+# from ..services.create import UserCreateService
+# from ..services.update import UserUpdateService
+# from ..services.delete import UserDeleteService
+# from ..services.find import UserFindService
+# from ..services.find_one import UserFindOneService
 
 
 @strawberry.type
 class UserResolvers:
     """
-    Consolidated User GraphQL Resolvers
+    Consolidated User GraphQL Resolvers - UPDATED
+    Now uses single UserService instead of 5 separate services
 
-    ⚠️ MANTIENE LÓGICA EXACTAMENTE IGUAL A LA ORIGINAL
-    Solo cambia: múltiples archivos -> un archivo
+    BENEFITS:
+    - Cleaner code: one service instead of 5
+    - Better performance: reused dependencies
+    - Easier maintenance: centralized CRUD logic
+    - Same functionality: zero breaking changes
     """
+
+    def __init__(self):
+        """Initialize with lazy loading"""
+        self._repository = None
+        self._use_cases = None
+        self._user_service = None
+
+    @property
+    def repository(self):
+        """Lazy load repository"""
+        if self._repository is None:
+            self._repository = DjangoUserRepository()
+        return self._repository
+
+    @property
+    def use_cases(self):
+        """Lazy load use cases"""
+        if self._use_cases is None:
+            self._use_cases = UserUseCases(self.repository)
+        return self._use_cases
+
+    @property
+    def user_service(self):
+        """Lazy load consolidated service"""
+        if self._user_service is None:
+            self._user_service = UserService(self.use_cases)
+        return self._user_service
 
     # ===== MUTATIONS =====
 
     @strawberry.mutation
     async def user_create(self, input: UserCreateInput) -> UserCreateResponse:
-        """Create a new user - LÓGICA EXACTAMENTE IGUAL"""
-        repository = DjangoUserRepository()  # ← IGUAL que antes
-        use_cases = UserUseCases(repository)  # ← IGUAL que antes
-        service = UserCreateService(use_cases)  # ← IGUAL que antes
-        return await service.dispatch(input, user_context={})
+        """Create user - UPDATED to use consolidated service"""
+        return await self.user_service.create_user(input, user_context={})
 
     @strawberry.mutation
     async def user_update(self, input: UserUpdateInput) -> UserUpdateResponse:
-        """Update an existing user - LÓGICA EXACTAMENTE IGUAL"""
-        repository = DjangoUserRepository()  # ← IGUAL que antes
-        use_cases = UserUseCases(repository)  # ← IGUAL que antes
-        service = UserUpdateService(use_cases)  # ← IGUAL que antes
-        return await service.dispatch(input, user_context={})
+        """Update user - UPDATED to use consolidated service"""
+        return await self.user_service.update_user(input, user_context={})
 
     @strawberry.mutation
     async def user_delete(self, user_id: str) -> UserDeleteResponse:
-        """Delete an existing user - LÓGICA EXACTAMENTE IGUAL"""
-        repository = DjangoUserRepository()  # ← IGUAL que antes
-        use_cases = UserUseCases(repository)  # ← IGUAL que antes
-        service = UserDeleteService(use_cases)  # ← IGUAL que antes
-        return await service.dispatch(user_id, user_context={})
+        """Delete user - UPDATED to use consolidated service"""
+        return await self.user_service.delete_user(user_id, user_context={})
 
     # ===== QUERIES =====
 
     @strawberry.field
     async def users_find(self, input: UserFindInput) -> UserFindResponse:
-        """Find users with filtering and pagination - LÓGICA EXACTAMENTE IGUAL"""
-        repository = DjangoUserRepository()  # ← IGUAL que antes
-        use_cases = UserUseCases(repository)  # ← IGUAL que antes
-        service = UserFindService(use_cases)  # ← IGUAL que antes
-        return await service.dispatch(input)
+        """Find users - UPDATED to use consolidated service"""
+        return await self.user_service.find_users(input)
 
     @strawberry.field
     async def user_find_one(self, input: UserFindOneInput) -> UserFindOneResponse:
-        """Find a single user by ID or email - LÓGICA EXACTAMENTE IGUAL"""
-        repository = DjangoUserRepository()  # ← IGUAL que antes
-        use_cases = UserUseCases(repository)  # ← IGUAL que antes
-        service = UserFindOneService(use_cases)  # ← IGUAL que antes
-        return await service.dispatch(input)
+        """Find single user - UPDATED to use consolidated service"""
+        return await self.user_service.find_user_one(input)
 
 
-# ===== SCHEMA MIXINS =====
+# ===== SCHEMA MIXINS (No changes needed) =====
 
 
 @strawberry.type

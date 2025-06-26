@@ -41,22 +41,6 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
 
         return self.mapper.model_to_entity(model)
 
-    async def verify_password(self, user_id: UUID, plain_password: str) -> bool:
-        try:
-            model = await sync_to_async(UserModel.objects.get)(id=user_id)
-            return model.check_password(plain_password)
-        except ObjectDoesNotExist:
-            return False
-
-    async def change_password(self, user_id: UUID, new_plain_password: str) -> bool:
-        try:
-            model = await sync_to_async(UserModel.objects.get)(id=user_id)
-            model.set_password(new_plain_password)
-            await sync_to_async(model.save)()
-            return True
-        except ObjectDoesNotExist:
-            return False
-
     # ===== NEW METHODS FOR CLEAN ARCHITECTURE =====
     async def find_by_criteria(self, criteria: List) -> List[User]:  # ✅ List ya importado
         """Find users by criteria - adapter for new architecture"""
@@ -69,4 +53,3 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
     async def delete_by_id(self, user_id: UUID) -> bool:
         """Delete user by ID - adapter for new architecture"""
         return await super().delete_by_id(user_id)
-

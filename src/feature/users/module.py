@@ -1,39 +1,33 @@
 # src/feature/users/module.py
 """
 Users module following Clean Architecture - UPDATED
-Structure: Infrastructure GraphQL → Infrastructure Services → Application Use Cases → Domain → Infrastructure Repositories
+Uses consolidated UserService instead of 5 separate services
 """
 
 from .application.use_cases.user_use_cases import UserUseCases
-from .infrastructure.services.create import UserCreateService
-from .infrastructure.services.update import UserUpdateService
-from .infrastructure.services.delete import UserDeleteService
-from .infrastructure.services.find import UserFindService
-from .infrastructure.services.find_one import UserFindOneService
 from .infrastructure.database.repositories import DjangoUserRepository
 
-# CAMBIO: Importamos desde infrastructure/graphql en lugar de presentation
+from .infrastructure.services.user_service import UserService
+
+# GraphQL Resolvers (Infrastructure)
 from .infrastructure.graphql.user_resolvers import UserResolvers, UserQueries, UserMutations
 
 
 class UserModule:
     """
     Users module configuration - Clean Architecture compliant
+    UPDATED: Now uses consolidated services
     """
 
     # Application Layer
     use_cases = [UserUseCases]
 
-    # Infrastructure Services (Adapters)
+    # Infrastructure Services (UPDATED: now only one service)
     services = [
-        UserCreateService,
-        UserUpdateService,
-        UserDeleteService,
-        UserFindService,
-        UserFindOneService,
+        UserService,  # ← Replaces 5 individual services
     ]
 
-    # GraphQL Resolvers (Infrastructure - no longer presentation)
+    # GraphQL Resolvers (Infrastructure)
     resolvers = [
         UserResolvers,
         UserQueries,
@@ -45,7 +39,7 @@ class UserModule:
 
     @classmethod
     def configure_dependency_injection(cls):
-        """Configure DI container for this feature"""
+        """Configure DI container for this feature - UPDATED"""
         from config.services import ServiceRegistry
 
         # Repository (singleton)
@@ -54,16 +48,13 @@ class UserModule:
         # Use Cases (transient - depends on repository)
         ServiceRegistry.register("users.use_cases", cls._create_use_cases)
 
-        # Infrastructure Services (transient - depends on use cases)
-        ServiceRegistry.register("users.create_service", cls._create_create_service)
-        ServiceRegistry.register("users.update_service", cls._create_update_service)
-        ServiceRegistry.register("users.delete_service", cls._create_delete_service)
-        ServiceRegistry.register("users.find_service", cls._create_find_service)
-        ServiceRegistry.register("users.find_one_service", cls._create_find_one_service)
+        # UPDATED: Single consolidated service instead of 5
+        ServiceRegistry.register("users.service", cls._create_user_service)
 
-        print("✅ Users module configured with Clean Architecture")
+        print("✅ Users module configured with consolidated UserService")
 
-    # ===== FACTORY METHODS =====
+    # ===== FACTORY METHODS - UPDATED =====
+
     @staticmethod
     def _create_repository():
         return DjangoUserRepository()
@@ -75,32 +66,8 @@ class UserModule:
         return UserUseCases(ServiceRegistry.get("users.repository"))
 
     @staticmethod
-    def _create_create_service():
+    def _create_user_service():
+        """UPDATED: Create consolidated UserService"""
         from config.services import ServiceRegistry
 
-        return UserCreateService(ServiceRegistry.get("users.use_cases"))
-
-    @staticmethod
-    def _create_update_service():
-        from config.services import ServiceRegistry
-
-        return UserUpdateService(ServiceRegistry.get("users.use_cases"))
-
-    @staticmethod
-    def _create_delete_service():
-        from config.services import ServiceRegistry
-
-        return UserDeleteService(ServiceRegistry.get("users.use_cases"))
-
-    @staticmethod
-    def _create_find_service():
-        from config.services import ServiceRegistry
-
-        return UserFindService(ServiceRegistry.get("users.use_cases"))
-
-    @staticmethod
-    def _create_find_one_service():
-        from config.services import ServiceRegistry
-
-        return UserFindOneService(ServiceRegistry.get("users.use_cases"))
-
+        return UserService(ServiceRegistry.get("users.use_cases"))

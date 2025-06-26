@@ -58,42 +58,6 @@ class User(BaseEntity):
         """Check if user is active"""
         return self.status == UserStatus.ACTIVE
 
-    @property
-    def is_locked(self) -> bool:
-        """Check if user is locked"""
-        return self.failed_login_attempts >= 5
-
-    def deactivate(self):
-        """Deactivate user"""
-        self.status = UserStatus.INACTIVE
-        self.update_timestamp()
-
-    def activate(self):
-        """Activate user"""
-        self.status = UserStatus.ACTIVE
-        self.update_timestamp()
-
-    def verify_email(self):
-        """Mark email as verified"""
-        self.email_verified = True
-        self.update_timestamp()
-
-    def record_login_success(self):
-        """Record successful login"""
-        self.last_login = datetime.now(timezone.utc)
-        self.failed_login_attempts = 0
-        self.update_timestamp()
-
-    def record_login_failure(self):
-        """Record failed login attempt"""
-        self.failed_login_attempts += 1
-        self.update_timestamp()
-
-    def reset_failed_attempts(self):
-        """Reset failed attempts"""
-        self.failed_login_attempts = 0
-        self.update_timestamp()
-
     def update_profile(self, first_name: Optional[str] = None, last_name: Optional[str] = None):
         """Update user profile"""
         if first_name:
@@ -102,4 +66,3 @@ class User(BaseEntity):
             self.last_name = last_name.strip()
         self.update_timestamp()
         self._validate()
-
