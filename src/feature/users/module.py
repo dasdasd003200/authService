@@ -1,7 +1,7 @@
 # src/feature/users/module.py
 """
-Users module following Clean Architecture
-Structure: Presentation → Infrastructure Services → Application Use Cases → Domain ← Infrastructure Repositories
+Users module following Clean Architecture - UPDATED
+Structure: Infrastructure GraphQL → Infrastructure Services → Application Use Cases → Domain → Infrastructure Repositories
 """
 
 from .application.use_cases.user_use_cases import UserUseCases
@@ -11,11 +11,9 @@ from .infrastructure.services.delete import UserDeleteService
 from .infrastructure.services.find import UserFindService
 from .infrastructure.services.find_one import UserFindOneService
 from .infrastructure.database.repositories import DjangoUserRepository
-from .presentation.graphql.resolvers.mutations.create import UserCreateResolver
-from .presentation.graphql.resolvers.mutations.update import UserUpdateResolver
-from .presentation.graphql.resolvers.mutations.delete import UserDeleteResolver
-from .presentation.graphql.resolvers.queries.find import UserFindResolver
-from .presentation.graphql.resolvers.queries.find_one import UserFindOneResolver
+
+# CAMBIO: Importamos desde infrastructure/graphql en lugar de presentation
+from .infrastructure.graphql.user_resolvers import UserResolvers, UserQueries, UserMutations
 
 
 class UserModule:
@@ -35,13 +33,11 @@ class UserModule:
         UserFindOneService,
     ]
 
-    # GraphQL Resolvers (Presentation)
+    # GraphQL Resolvers (Infrastructure - no longer presentation)
     resolvers = [
-        UserCreateResolver,
-        UserUpdateResolver,
-        UserDeleteResolver,
-        UserFindResolver,
-        UserFindOneResolver,
+        UserResolvers,
+        UserQueries,
+        UserMutations,
     ]
 
     # Repository (Infrastructure)
