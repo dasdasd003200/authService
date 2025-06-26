@@ -8,11 +8,6 @@ from src.feature.users.domain.value_objects.user_status import UserStatus
 
 
 class User(BaseEntity):
-    """
-    User Domain Entity - Pure business logic
-    Esta es la entidad de DOMINIO, no la de GraphQL
-    """
-
     def __init__(
         self,
         email: Email,
@@ -20,8 +15,6 @@ class User(BaseEntity):
         last_name: str,
         status: UserStatus = UserStatus.ACTIVE,
         email_verified: bool = False,
-        last_login: Optional[datetime] = None,
-        failed_login_attempts: int = 0,
         id: Optional[UUID] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
@@ -32,13 +25,10 @@ class User(BaseEntity):
         self.last_name = last_name.strip()
         self.status = status
         self.email_verified = email_verified
-        self.last_login = last_login
-        self.failed_login_attempts = failed_login_attempts
 
         self._validate()
 
     def _validate(self):
-        """Validate entity integrity"""
         if not self.first_name:
             raise ValueError("First name is required")
         if not self.last_name:

@@ -17,13 +17,3 @@ class UserStatus(Enum):
             if status.value == value.lower():
                 return status
         raise ValueError(f"Status inválido: {value}")
-
-    @property
-    def is_active(self) -> bool:
-        """Verifica si el status es activo"""
-        return self == UserStatus.ACTIVE
-
-    @property
-    def can_login(self) -> bool:
-        """Verifica si el usuario puede hacer login"""
-        return self in [UserStatus.ACTIVE]

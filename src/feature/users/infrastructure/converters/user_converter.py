@@ -1,4 +1,9 @@
 # src/feature/users/infrastructure/converters/user_converter.py
+"""
+User Converter - FIXED for minimal CRUD
+Removes references to eliminated fields: last_login, failed_login_attempts
+"""
+
 from typing import List
 
 from ...domain.entities.user import User
@@ -12,8 +17,10 @@ class UserConverter:
     def entity_to_graphql(user: User) -> UserGraphQLType:
         """
         Convert domain entity to GraphQL type
+        UPDATED: Removed references to eliminated fields
         """
 
+        # Convert status enum
         graphql_status = GraphQLUserStatus.ACTIVE
         if user.status == UserStatus.INACTIVE:
             graphql_status = GraphQLUserStatus.INACTIVE
@@ -30,10 +37,10 @@ class UserConverter:
             full_name=user.full_name,
             status=graphql_status,
             email_verified=user.email_verified,
-            last_login=user.last_login,
-            failed_login_attempts=user.failed_login_attempts,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            # REMOVED: last_login=user.last_login,
+            # REMOVED: failed_login_attempts=user.failed_login_attempts,
         )
 
     @staticmethod
@@ -47,8 +54,8 @@ class UserConverter:
     def entity_to_graphql_optional(user: User = None) -> UserGraphQLType:
         """
         Convert entity to GraphQL with None check
-
         """
         if user is None:
             return None
         return UserConverter.entity_to_graphql(user)
+

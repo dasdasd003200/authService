@@ -24,14 +24,11 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> "UserModel":
         extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("status", UserModel.StatusChoices.ACTIVE)
         extra_fields.setdefault("email_verified", True)
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(email, password, **extra_fields)
 
@@ -59,12 +56,9 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         verbose_name="Status",
     )
     email_verified = models.BooleanField(default=False, verbose_name="Email Verified")
-    failed_login_attempts = models.PositiveIntegerField(default=0, verbose_name="Failed Login Attempts")
-    last_login = models.DateTimeField(null=True, blank=True, verbose_name="Last Login")
 
     # Django admin fields
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")

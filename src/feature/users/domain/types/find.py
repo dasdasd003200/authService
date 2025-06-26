@@ -1,11 +1,11 @@
 import strawberry
 from typing import List, Optional
-from ..schemes.user import UserGraphQLType  # ✅ CAMBIAR IMPORT
+from ..schemes.user import UserGraphQLType
 
 
 @strawberry.type
 class UserFindData:
-    users: List[UserGraphQLType] = strawberry.field(description="List of users")  # ✅ CAMBIAR TIPO
+    users: List[UserGraphQLType] = strawberry.field(description="List of users")
 
 
 @strawberry.type
@@ -15,4 +15,3 @@ class UserFindResponse:
     total_count: int = strawberry.field(description="Total count of users")
     message: Optional[str] = strawberry.field(default=None, description="Response message")
     error_code: Optional[str] = strawberry.field(default=None, description="Error code if failed")
-
