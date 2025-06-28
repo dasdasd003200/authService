@@ -9,8 +9,6 @@ from django.contrib.auth.models import (
 
 
 class UserManager(BaseUserManager):
-    """Custom manager for User model"""
-
     def create_user(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> "UserModel":
         if not email:
             raise ValueError("Email is required")
@@ -34,8 +32,6 @@ class UserManager(BaseUserManager):
 
 
 class UserModel(AbstractBaseUser, PermissionsMixin):
-    """Django model for users"""
-
     class StatusChoices(models.TextChoices):
         ACTIVE = "active", "Active"
         INACTIVE = "inactive", "Inactive"

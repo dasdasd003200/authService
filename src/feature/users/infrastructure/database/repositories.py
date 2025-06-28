@@ -1,5 +1,4 @@
-# ===== MODIFICAR: src/feature/users/infrastructure/database/repositories.py =====
-from typing import Optional, List  # ✅ Agregar List aquí
+from typing import Optional, List
 from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
