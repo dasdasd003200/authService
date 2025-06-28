@@ -1,15 +1,21 @@
+# src/feature/users/domain/inputs/find_one.py
 import strawberry
-from typing import Optional
+from typing import Optional, List
 from src.shared.criteria.graphql_inputs import CriteriaInput
 
 
 @strawberry.input
 class UserFindOneInput:
-    """COMPLETELY GENERIC user find one input - can search ANY field like NestJS"""
+    """
+    CLEAN User FindOne Input - Modern + Legacy support
+    Primary: Use criteria for any field search
+    Fallback: Legacy simple fields for backward compatibility
+    """
 
-    # ===== DIRECT CRITERIA (LIKE NESTJS) =====
-    criteria: Optional[CriteriaInput] = strawberry.field(default=None, description="Generic criteria for finding one user by ANY field")
+    # ===== MODERN APPROACH (Recommended) =====
+    criteria: Optional[CriteriaInput] = strawberry.field(default=None, description="Universal criteria - can search by ANY field")
 
-    # ===== LEGACY SIMPLE FILTERS (DEPRECATED - for backward compatibility) =====
-    user_id: Optional[str] = strawberry.field(default=None, description="[DEPRECATED] Find by user ID")
-    email: Optional[str] = strawberry.field(default=None, description="[DEPRECATED] Find by email")
+    # ===== LEGACY FIELDS (Backward compatibility only) =====
+    user_id: Optional[str] = strawberry.field(default=None, description="[LEGACY] Find by user ID")
+    email: Optional[str] = strawberry.field(default=None, description="[LEGACY] Find by email")
+

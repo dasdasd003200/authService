@@ -1,6 +1,10 @@
 # src/shared/criteria/__init__.py
+"""
+CLEAN SHARED CRITERIA SYSTEM
+Only what's actually used
+"""
+
 from .base_criteria import (
-    # Main classes
     Criteria,
     CriteriaBuilder,
     Filters,
@@ -9,14 +13,22 @@ from .base_criteria import (
     Order,
     Projection,
     CriteriaOptions,
-    # Enums
     FilterOperator,
     SortDirection,
 )
 from .converter import CriteriaConverter
 from .prepare import PrepareFind, PrepareFindOne
 from .input_converter import CriteriaInputConverter
-from .graphql_inputs import CriteriaInput, FilterInput, OrderInput, ProjectionInput, CriteriaOptionsInput, FilterOperatorInput, SortDirectionInput
+from .service_helper import CriteriaServiceHelper
+from .graphql_inputs import (
+    CriteriaInput,
+    FilterInput,
+    OrderInput,
+    ProjectionInput,
+    CriteriaOptionsInput,
+    FilterOperatorInput,
+    SortDirectionInput,
+)
 
 __all__ = [
     # Main classes
@@ -31,9 +43,10 @@ __all__ = [
     # Enums
     "FilterOperator",
     "SortDirection",
-    # Converters
+    # Converters and helpers
     "CriteriaConverter",
     "CriteriaInputConverter",
+    "CriteriaServiceHelper",
     # Prepare classes
     "PrepareFind",
     "PrepareFindOne",

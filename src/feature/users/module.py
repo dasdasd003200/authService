@@ -1,73 +1,40 @@
 # src/feature/users/module.py
 """
-Users module following Clean Architecture - UPDATED
-Uses consolidated UserService instead of 5 separate services
+CLEAN User Module - Simple and Direct
 """
 
 from .application.use_cases.user_use_cases import UserUseCases
 from .infrastructure.database.repositories import DjangoUserRepository
-
 from .infrastructure.services.user_service import UserService
-
-# GraphQL Resolvers (Infrastructure)
-from .infrastructure.graphql.user_resolvers import UserResolvers, UserQueries, UserMutations
+from .infrastructure.graphql.user_resolvers import UserQueries, UserMutations
 
 
 class UserModule:
-    """
-    Users module configuration - Clean Architecture compliant
-    UPDATED: Now uses consolidated services
-    """
+    """Simple module for Users feature"""
 
-    # Application Layer
-    use_cases = [UserUseCases]
-
-    # Infrastructure Services (UPDATED: now only one service)
-    services = [
-        UserService,  # ← Replaces 5 individual services
-    ]
-
-    # GraphQL Resolvers (Infrastructure)
-    resolvers = [
-        UserResolvers,
-        UserQueries,
-        UserMutations,
-    ]
-
-    # Repository (Infrastructure)
-    repository = DjangoUserRepository
+    FEATURE_NAME = "users"
 
     @classmethod
-    def configure_dependency_injection(cls):
-        """Configure DI container for this feature - UPDATED"""
-        from config.services import ServiceRegistry
+    def get_service(cls):
+        """Get user service - simple instantiation"""
+        repository = DjangoUserRepository()
+        use_cases = UserUseCases(repository)
+        return UserService(use_cases)
 
-        # Repository (singleton)
-        ServiceRegistry.register("users.repository", cls._create_repository)
-
-        # Use Cases (transient - depends on repository)
-        ServiceRegistry.register("users.use_cases", cls._create_use_cases)
-
-        # UPDATED: Single consolidated service instead of 5
-        ServiceRegistry.register("users.service", cls._create_user_service)
-
-        print("✅ Users module configured with consolidated UserService")
-
-    # ===== FACTORY METHODS - UPDATED =====
-
-    @staticmethod
-    def _create_repository():
+    @classmethod
+    def get_repository(cls):
         return DjangoUserRepository()
 
-    @staticmethod
-    def _create_use_cases():
-        from config.services import ServiceRegistry
+    @classmethod
+    def get_use_cases(cls):
+        repository = DjangoUserRepository()
+        return UserUseCases(repository)
 
-        return UserUseCases(ServiceRegistry.get("users.repository"))
+    @classmethod
+    def get_queries(cls):
+        return UserQueries
 
-    @staticmethod
-    def _create_user_service():
-        """UPDATED: Create consolidated UserService"""
-        from config.services import ServiceRegistry
+    @classmethod
+    def get_mutations(cls):
+        return UserMutations
 
-        return UserService(ServiceRegistry.get("users.use_cases"))
