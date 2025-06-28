@@ -5,8 +5,6 @@ from typing import Optional
 
 
 class BaseEntity(ABC):
-    """Entidad base con ID y timestamps"""
-
     def __init__(
         self,
         id: Optional[UUID] = None,
@@ -18,7 +16,6 @@ class BaseEntity(ABC):
         self.updated_at = updated_at or datetime.now(timezone.utc)
 
     def update_timestamp(self):
-        """Actualiza el timestamp de modificación"""
         self.updated_at = datetime.now(timezone.utc)
 
     def __eq__(self, other):

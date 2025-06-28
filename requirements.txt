@@ -1,21 +1,14 @@
-# Core Django
 Django==5.2.3
 djangorestframework==3.15.2
 
-# Database
 psycopg2-binary==2.9.9
 
-# GraphQL - MIGRADO A STRAWBERRY
 strawberry-graphql[django]==0.248.1
 
-# Authentication & Security
 PyJWT==2.9.0
 
-# Environment
 python-decouple==3.8
 
-# Development tools
 django-extensions==3.2.3
 
-# ASGI Server - NUEVO
 uvicorn[standard]==0.30.6

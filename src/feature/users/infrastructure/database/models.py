@@ -38,13 +38,11 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
         SUSPENDED = "suspended", "Suspended"
         PENDING_VERIFICATION = "pending_verification", "Pending Verification"
 
-    # Primary fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True, max_length=255, verbose_name="Email Address")
     first_name = models.CharField(max_length=50, verbose_name="First Name")
     last_name = models.CharField(max_length=50, verbose_name="Last Name")
 
-    # Status and verification fields
     status = models.CharField(
         max_length=25,
         choices=StatusChoices.choices,
@@ -53,10 +51,8 @@ class UserModel(AbstractBaseUser, PermissionsMixin):
     )
     email_verified = models.BooleanField(default=False, verbose_name="Email Verified")
 
-    # Django admin fields
     is_active = models.BooleanField(default=True)
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
 

@@ -6,12 +6,6 @@ from src.shared.criteria.graphql_inputs import CriteriaInput
 
 @strawberry.input
 class UserFindInput:
-    """
-    CLEAN User Find Input - Modern + Legacy support
-    Primary: Use criteria for any complex filtering
-    Fallback: Legacy simple fields for backward compatibility
-    """
-
     # ===== MODERN APPROACH (Recommended) =====
     criteria: Optional[CriteriaInput] = strawberry.field(default=None, description="Universal criteria - can filter ANY field, order, paginate")
 

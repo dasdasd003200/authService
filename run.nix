@@ -13,4 +13,3 @@ pkgs.mkShell {
     uvicorn config.asgi:application --reload --port 8000
   '';
 }
-    # python manage.py runserver

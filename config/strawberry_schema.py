@@ -7,7 +7,6 @@ from src.feature.users.infrastructure.graphql.user_resolvers import UserQueries,
 class Query(UserQueries):
     @strawberry.field
     def health(self) -> str:
-        """Health check endpoint"""
         return "Auth Service is running!"
 
 
@@ -20,4 +19,3 @@ schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
 )
-

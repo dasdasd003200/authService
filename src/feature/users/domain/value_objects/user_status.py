@@ -12,7 +12,6 @@ class UserStatus(Enum):
 
     @classmethod
     def from_string(cls, value: str) -> "UserStatus":
-        """Crea UserStatus desde string"""
         for status in cls:
             if status.value == value.lower():
                 return status

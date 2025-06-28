@@ -6,27 +6,19 @@ from .base_criteria import Criteria, Filters, FilterOperator, Filter
 
 
 class CriteriaConverter:
-    """Converts Criteria to Django QuerySet operations - generic for any model"""
-
     @staticmethod
     def apply_criteria(queryset: QuerySet, criteria: Criteria) -> QuerySet:
-        """Apply complete criteria to any queryset"""
-
-        # Apply filters
         if criteria.has_filters():
             queryset = CriteriaConverter._apply_filters(queryset, criteria.filters)
 
-        # Apply ordering
         if criteria.has_orders():
             order_fields = criteria.orders.to_django_order_by()
             queryset = queryset.order_by(*order_fields)
 
-        # Apply projection (select specific fields)
         if criteria.has_projection():
             fields = criteria.projection.to_django_values()
             queryset = queryset.values(*fields)
 
-        # Apply pagination
         if criteria.has_pagination():
             if criteria.offset is not None:
                 queryset = queryset[criteria.offset :]
@@ -39,7 +31,6 @@ class CriteriaConverter:
 
     @staticmethod
     def _apply_filters(queryset: QuerySet, filters: Filters) -> QuerySet:
-        """Apply filters to any queryset"""
         if not filters.filters:
             return queryset
 
@@ -64,7 +55,6 @@ class CriteriaConverter:
 
     @staticmethod
     def _filter_to_q(filter_obj: Filter) -> Q:
-        """Convert single filter to Django Q object"""
         lookup = filter_obj.to_django_lookup()
 
         # Handle special exclude cases
@@ -77,4 +67,3 @@ class CriteriaConverter:
             return ~Q(**{actual_key: exclude_value})
 
         return Q(**lookup)
-

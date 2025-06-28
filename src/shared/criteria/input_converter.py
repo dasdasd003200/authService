@@ -3,12 +3,8 @@ from .graphql_inputs import CriteriaInput, FilterInput, OrderInput, ProjectionIn
 
 
 class CriteriaInputConverter:
-    """Converts GraphQL inputs to domain criteria objects - completely generic"""
-
     @staticmethod
     def from_graphql_input(input_data: CriteriaInput) -> Criteria:
-        """Convert GraphQL CriteriaInput to domain Criteria"""
-
         # Convert filters
         filters = Filters.none()
         if input_data.filters:
@@ -37,8 +33,6 @@ class CriteriaInputConverter:
 
     @staticmethod
     def _convert_filter(filter_input: FilterInput) -> Filter:
-        """Convert GraphQL filter input to domain filter"""
-
         # Convert operator
         operator_map = {
             FilterOperatorInput.EQ: FilterOperator.EQ,
@@ -61,7 +55,6 @@ class CriteriaInputConverter:
 
         operator = operator_map[filter_input.operator]
 
-        # Handle nested filters for AND/OR
         nested_filters = None
         if filter_input.nested_filters:
             nested_filters = [CriteriaInputConverter._convert_filter(nf) for nf in filter_input.nested_filters]
@@ -70,7 +63,6 @@ class CriteriaInputConverter:
 
     @staticmethod
     def _convert_order(order_input: OrderInput) -> Order:
-        """Convert GraphQL order input to domain order"""
         direction_map = {SortDirectionInput.ASC: SortDirection.ASC, SortDirectionInput.DESC: SortDirection.DESC}
 
         return Order(field=order_input.field, direction=direction_map[order_input.direction])

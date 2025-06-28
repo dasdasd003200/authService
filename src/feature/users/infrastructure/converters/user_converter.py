@@ -9,7 +9,6 @@ from ...domain.value_objects.user_status import UserStatus
 class UserConverter:
     @staticmethod
     def entity_to_graphql(user: User) -> UserGraphQLType:
-        # Convert status enum
         graphql_status = GraphQLUserStatus.ACTIVE
         if user.status == UserStatus.INACTIVE:
             graphql_status = GraphQLUserStatus.INACTIVE
@@ -39,4 +38,3 @@ class UserConverter:
         if user is None:
             return None
         return UserConverter.entity_to_graphql(user)
-

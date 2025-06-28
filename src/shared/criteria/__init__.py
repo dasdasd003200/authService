@@ -1,9 +1,3 @@
-# src/shared/criteria/__init__.py
-"""
-CLEAN SHARED CRITERIA SYSTEM
-Only what's actually used
-"""
-
 from .base_criteria import (
     Criteria,
     CriteriaBuilder,
@@ -59,4 +53,3 @@ __all__ = [
     "FilterOperatorInput",
     "SortDirectionInput",
 ]
-

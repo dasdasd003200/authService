@@ -14,44 +14,34 @@ class CriteriaServiceHelper:
         self.additional_field_mapping = additional_field_mapping or {}
 
     def build_find_prepare(self, input_obj) -> PrepareFind:
-        # First try direct criteria (modern approach)
         if hasattr(input_obj, "criteria") and input_obj.criteria:
             criteria = CriteriaInputConverter.from_graphql_input(input_obj.criteria)
             return PrepareFind(criteria=criteria)
 
-        # Fallback to legacy fields (backward compatibility)
         criteria = self._build_legacy_find_criteria(input_obj)
         return PrepareFind(criteria=criteria)
 
     def build_find_one_prepare(self, input_obj) -> PrepareFindOne:
-        """
-        Build PrepareFindOne from ANY feature's input
-        Handles both direct criteria AND legacy fields
-        """
         # First try direct criteria (modern approach)
         if hasattr(input_obj, "criteria") and input_obj.criteria:
             criteria = CriteriaInputConverter.from_graphql_input(input_obj.criteria)
             return PrepareFindOne(filters=criteria.filters)
 
-        # Fallback to legacy fields (backward compatibility)
         criteria = self._build_legacy_find_one_criteria(input_obj)
         return PrepareFindOne(filters=criteria.filters)
 
     # ===== INLINE LEGACY BUILDER (sin dependencia externa) =====
 
     def _build_legacy_find_criteria(self, input_obj) -> Criteria:
-        """Build find criteria from legacy input fields - inline implementation"""
         builder = Criteria.builder()
         filters = []
 
-        # Extract common fields
         status = getattr(input_obj, "status", None)
         search_text = getattr(input_obj, "search_text", None)
         page = getattr(input_obj, "page", 1)
         page_size = getattr(input_obj, "page_size", 10)
         order_by = getattr(input_obj, "order_by", None)
 
-        # ===== STATUS FILTER =====
         if status:
             filters.append(Filter(field="status", operator=FilterOperator.EQ, value=status))
 
@@ -102,7 +92,6 @@ class CriteriaServiceHelper:
         return builder.build()
 
     def _build_legacy_find_one_criteria(self, input_obj) -> Criteria:
-        """Build findOne criteria from legacy input fields - inline implementation"""
         filters = []
 
         # ===== ID FILTER (most common) =====

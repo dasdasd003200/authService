@@ -16,7 +16,6 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
         mapper = UserEntityMapper()
         super().__init__(UserModel, mapper)
 
-    # ===== USER-SPECIFIC IMPLEMENTATIONS =====
     async def find_by_email(self, email: Email) -> Optional[User]:
         try:
             model = await sync_to_async(UserModel.objects.get)(email=str(email))
@@ -35,5 +34,4 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
         return self.mapper.model_to_entity(model)
 
     async def delete_by_id(self, user_id: UUID) -> bool:
-        """Explicit delete_by_id for users"""
         return await super().delete(user_id)

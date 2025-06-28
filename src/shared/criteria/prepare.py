@@ -7,8 +7,6 @@ T = TypeVar("T")
 
 @dataclass
 class PrepareFind(Generic[T]):
-    """Prepare class for find operations - generic for any entity"""
-
     criteria: Criteria
 
     def __init__(self, criteria: Criteria):
@@ -17,8 +15,6 @@ class PrepareFind(Generic[T]):
 
 @dataclass
 class PrepareFindOne(Generic[T]):
-    """Prepare class for findOne operations - generic for any entity"""
-
     criteria: Criteria
 
     def __init__(self, filters: Filters):

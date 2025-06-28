@@ -40,16 +40,13 @@ class User(BaseEntity):
 
     @property
     def full_name(self) -> str:
-        """User's full name"""
         return f"{self.first_name} {self.last_name}"
 
     @property
     def is_active(self) -> bool:
-        """Check if user is active"""
         return self.status == UserStatus.ACTIVE
 
     def update_profile(self, first_name: Optional[str] = None, last_name: Optional[str] = None):
-        """Update user profile"""
         if first_name:
             self.first_name = first_name.strip()
         if last_name:

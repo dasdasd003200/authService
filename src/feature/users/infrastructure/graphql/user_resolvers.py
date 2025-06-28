@@ -43,29 +43,24 @@ class UserResolvers:
 
     @strawberry.field
     async def users_find(self, input: UserFindInput) -> UserFindResponse:
-        """Universal find - handles ANY criteria"""
         return await self.service.find(input)
 
     @strawberry.field
     async def user_find_one(self, input: UserFindOneInput) -> UserFindOneResponse:
-        """Universal findOne - handles ANY criteria"""
         return await self.service.find_one(input)
 
     # ===== MUTATIONS (Like your @Mutation methods) =====
 
     @strawberry.mutation
     async def user_create(self, input: UserCreateInput) -> UserCreateResponse:
-        """Create user"""
         return await self.service.create(input, user_context={})
 
     @strawberry.mutation
     async def user_update(self, input: UserUpdateInput) -> UserUpdateResponse:
-        """Update user"""
         return await self.service.update(input, user_context={})
 
     @strawberry.mutation
     async def user_delete(self, user_id: str) -> UserDeleteResponse:
-        """Delete user"""
         return await self.service.delete(user_id, user_context={})
 
 
@@ -74,8 +69,6 @@ class UserResolvers:
 
 @strawberry.type
 class UserQueries:
-    """Query mixin for main schema"""
-
     @strawberry.field
     async def users_find(self, input: UserFindInput) -> UserFindResponse:
         resolver = UserResolvers()  # Fixed: UserResolvers not UserResolver
@@ -89,8 +82,6 @@ class UserQueries:
 
 @strawberry.type
 class UserMutations:
-    """Mutation mixin for main schema"""
-
     @strawberry.mutation
     async def user_create(self, input: UserCreateInput) -> UserCreateResponse:
         resolver = UserResolvers()  # Fixed: UserResolvers not UserResolver
@@ -105,4 +96,3 @@ class UserMutations:
     async def user_delete(self, user_id: str) -> UserDeleteResponse:
         resolver = UserResolvers()  # Fixed: UserResolvers not UserResolver
         return await resolver.user_delete(user_id)
-
