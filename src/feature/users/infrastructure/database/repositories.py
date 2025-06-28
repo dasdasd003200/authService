@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.core.exceptions import ObjectDoesNotExist
@@ -16,7 +16,7 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
         mapper = UserEntityMapper()
         super().__init__(UserModel, mapper)
 
-    # ===== USER-SPECIFIC QUERIES =====
+    # ===== USER-SPECIFIC IMPLEMENTATIONS =====
     async def find_by_email(self, email: Email) -> Optional[User]:
         try:
             model = await sync_to_async(UserModel.objects.get)(email=str(email))
@@ -27,28 +27,13 @@ class DjangoUserRepository(DjangoBaseRepository[User], UserRepository):
     async def exists_by_email(self, email: Email) -> bool:
         return await sync_to_async(UserModel.objects.filter(email=str(email)).exists)()
 
-    # ===== PASSWORD OPERATIONS (Django-specific) =====
     async def save_with_password(self, entity: User, plain_password: str) -> User:
         data = self.mapper.entity_to_model_data(entity)
-
-        model, _ = await sync_to_async(self.model_class.objects.update_or_create)(  # ✅ Usar _ en lugar de created
-            id=entity.id, defaults=data
-        )
-
+        model, _ = await sync_to_async(self.model_class.objects.update_or_create)(id=entity.id, defaults=data)
         model.set_password(plain_password)
         await sync_to_async(model.save)()
-
         return self.mapper.model_to_entity(model)
 
-    # ===== NEW METHODS FOR CLEAN ARCHITECTURE =====
-    async def find_by_criteria(self, criteria: List) -> List[User]:  # ✅ List ya importado
-        """Find users by criteria - adapter for new architecture"""
-        return await super().find_by_criteria(criteria)
-
-    async def count_by_criteria(self, criteria: List) -> int:  # ✅ List ya importado
-        """Count users by criteria - adapter for new architecture"""
-        return await super().count_by_criteria(criteria)
-
     async def delete_by_id(self, user_id: UUID) -> bool:
-        """Delete user by ID - adapter for new architecture"""
-        return await super().delete_by_id(user_id)
+        """Explicit delete_by_id for users"""
+        return await super().delete(user_id)

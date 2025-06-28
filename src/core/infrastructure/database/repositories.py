@@ -1,3 +1,4 @@
+# ===== 1. FIXED CORE REPOSITORY (src/core/infrastructure/database/repositories.py) =====
 from typing import Type, Optional, List, Dict, Any, TypeVar
 from uuid import UUID
 from django.db import models
@@ -5,7 +6,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from asgiref.sync import sync_to_async
 from src.core.domain.entities.base_entity import BaseEntity
 from src.core.domain.repositories.base_repository import BaseRepository
-from src.shared.criteria.base_criteria import BaseCriteria
 from src.core.infrastructure.database.mappers.base_mapper import BaseEntityMapper
 
 T = TypeVar("T", bound=BaseEntity)
@@ -16,23 +16,13 @@ class DjangoBaseRepository(BaseRepository[T]):
         self.model_class = model_class
         self.mapper = mapper
 
-    # ===== CREATE OPERATIONS =====
+    # ===== CORE OPERATIONS =====
     async def save(self, entity: T) -> T:
         """Save entity using mapper"""
         data = self.mapper.entity_to_model_data(entity)
         model, _ = await sync_to_async(self.model_class.objects.update_or_create)(id=entity.id, defaults=data)
         return self.mapper.model_to_entity(model)
 
-    async def save_many(self, entities: List[T]) -> List[T]:
-        """Bulk save multiple entities"""
-        saved_models = []
-        for entity in entities:
-            data = self.mapper.entity_to_model_data(entity)
-            model, _ = await sync_to_async(self.model_class.objects.update_or_create)(id=entity.id, defaults=data)
-            saved_models.append(model)
-        return self.mapper.models_to_entities(saved_models)
-
-    # ===== READ OPERATIONS =====
     async def find_by_id(self, entity_id: UUID) -> Optional[T]:
         """Find entity by ID"""
         try:
@@ -41,46 +31,7 @@ class DjangoBaseRepository(BaseRepository[T]):
         except ObjectDoesNotExist:
             return None
 
-    async def find_by_criteria(self, criteria: List[BaseCriteria]) -> List[T]:
-        """Find entities by criteria"""
-        queryset = self.model_class.objects.all()
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-        models = await sync_to_async(list)(queryset)
-        return self.mapper.models_to_entities(models)
-
-    async def find_first(self, criteria: List[BaseCriteria]) -> Optional[T]:
-        """Find first entity matching criteria"""
-        queryset = self.model_class.objects.all()
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-        try:
-            model = await sync_to_async(queryset.first)()
-            return self.mapper.model_to_entity(model) if model else None
-        except ObjectDoesNotExist:
-            return None
-
-    async def find_all(self) -> List[T]:
-        """Find all entities"""
-        models = await sync_to_async(list)(self.model_class.objects.all())
-        return self.mapper.models_to_entities(models)
-
-    # ===== UPDATE OPERATIONS =====
-    async def update_by_id(self, entity_id: UUID, updates: Dict[str, Any]) -> Optional[T]:
-        """Update specific fields by ID"""
-        try:
-            await sync_to_async(self.model_class.objects.filter(id=entity_id).update)(**updates)
-            model = await sync_to_async(self.model_class.objects.get)(id=entity_id)
-            return self.mapper.model_to_entity(model)
-        except ObjectDoesNotExist:
-            return None
-
-    async def update_many(self, entity_ids: List[UUID], updates: Dict[str, Any]) -> int:
-        """Bulk update multiple entities"""
-        return await sync_to_async(self.model_class.objects.filter(id__in=entity_ids).update)(**updates)
-
-    # ===== DELETE OPERATIONS =====
-    async def delete_by_id(self, entity_id: UUID) -> bool:
+    async def delete(self, entity_id: UUID) -> bool:
         """Delete entity by ID"""
         try:
             deleted_count, _ = await sync_to_async(self.model_class.objects.filter(id=entity_id).delete)()
@@ -88,45 +39,57 @@ class DjangoBaseRepository(BaseRepository[T]):
         except Exception:
             return False
 
-    async def delete_many(self, entity_ids: List[UUID]) -> int:
-        """Bulk delete multiple entities"""
-        try:
-            deleted_count, _ = await sync_to_async(self.model_class.objects.filter(id__in=entity_ids).delete)()
-            return deleted_count
-        except Exception:
-            return 0
-
-    async def delete_by_criteria(self, criteria: List[BaseCriteria]) -> int:
-        """Delete entities by criteria"""
-        try:
-            queryset = self.model_class.objects.all()
-            for criterion in criteria:
-                queryset = criterion.apply(queryset)
-            deleted_count, _ = await sync_to_async(queryset.delete)()
-            return deleted_count
-        except Exception:
-            return 0
-
-    # ===== QUERY OPERATIONS =====
-    async def count_by_criteria(self, criteria: List[BaseCriteria]) -> int:
-        """Count entities by criteria"""
-        queryset = self.model_class.objects.all()
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-        return await sync_to_async(queryset.count)()
-
     async def exists_by_id(self, entity_id: UUID) -> bool:
         """Check if entity exists by ID"""
         return await sync_to_async(self.model_class.objects.filter(id=entity_id).exists)()
 
-    async def exists_by_criteria(self, criteria: List[BaseCriteria]) -> bool:
-        """Check if any entity exists matching criteria"""
-        queryset = self.model_class.objects.all()
-        for criterion in criteria:
-            queryset = criterion.apply(queryset)
-        return await sync_to_async(queryset.exists)()
+    # ===== NEW METHODS FOR GENERIC CRITERIA =====
+    async def find_with_criteria(self, criteria) -> List[T]:
+        """Find entities using generic Criteria"""
+        from src.shared.criteria.converter import CriteriaConverter
 
-    # ===== LEGACY COMPATIBILITY =====
-    async def delete(self, entity_id: UUID) -> bool:
-        """Legacy delete method - delegates to delete_by_id"""
-        return await self.delete_by_id(entity_id)
+        queryset = self.model_class.objects.all()
+
+        # Apply criteria using generic converter
+        filtered_queryset = CriteriaConverter.apply_criteria(queryset, criteria)
+
+        # Execute query
+        models = await sync_to_async(list)(filtered_queryset)
+        return self.mapper.models_to_entities(models)
+
+    async def find_one_with_criteria(self, criteria) -> Optional[T]:
+        """Find one entity using generic Criteria"""
+        from src.shared.criteria.converter import CriteriaConverter
+        from src.shared.criteria.base_criteria import Criteria
+
+        queryset = self.model_class.objects.all()
+
+        # Apply criteria (without pagination for findOne)
+        criteria_no_pagination = Criteria(
+            filters=criteria.filters,
+            orders=criteria.orders,
+            projection=criteria.projection,
+            options=criteria.options,
+            # No limit/offset
+        )
+
+        filtered_queryset = CriteriaConverter.apply_criteria(queryset, criteria_no_pagination)
+
+        try:
+            model = await sync_to_async(filtered_queryset.first)()
+            return self.mapper.model_to_entity(model) if model else None
+        except ObjectDoesNotExist:
+            return None
+
+    async def count_with_criteria(self, criteria) -> int:
+        """Count entities using generic Criteria"""
+        from src.shared.criteria.converter import CriteriaConverter
+        from src.shared.criteria.base_criteria import Criteria
+
+        queryset = self.model_class.objects.all()
+
+        # Apply only filters and orders (no pagination/projection for count)
+        count_criteria = Criteria(filters=criteria.filters, orders=criteria.orders, options=criteria.options)
+
+        filtered_queryset = CriteriaConverter.apply_criteria(queryset, count_criteria)
+        return await sync_to_async(filtered_queryset.count)()

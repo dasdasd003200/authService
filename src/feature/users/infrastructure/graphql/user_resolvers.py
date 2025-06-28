@@ -1,3 +1,4 @@
+# src/feature/users/infrastructure/graphql/user_resolvers.py
 import strawberry
 
 from ...domain.inputs.create import UserCreateInput
@@ -66,7 +67,7 @@ class UserResolvers:
         return await self.user_service.find_user_one(input)
 
 
-# ===== SCHEMA MIXINS (No changes needed) =====
+# ===== SCHEMA MIXINS =====
 
 
 @strawberry.type
