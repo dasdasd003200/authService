@@ -1,6 +1,7 @@
-# src/feature/sessions/application/use_cases/session_use_cases.py
+# src/feature/sessions/application/use_cases/session_use_cases.py - IMPROVED
 from typing import Optional, Tuple
 from uuid import UUID
+from django.contrib.auth.hashers import check_password
 
 from src.core.application.use_cases.base_crud_use_cases import BaseCrudUseCases
 from src.core.domain.value_objects.email import Email
@@ -35,9 +36,20 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         if not user.is_active:
             raise UnauthorizedError("Account is not active")
 
-        # TODO: Add password verification here
-        # For now, assuming password is valid
-        # In real implementation: check password hash
+        # ✅ REAL PASSWORD VALIDATION
+        # Need to get Django model to check password
+        from src.feature.users.infrastructure.database.models import UserModel
+        from asgiref.sync import sync_to_async
+
+        try:
+            django_user = await sync_to_async(UserModel.objects.get)(id=user.id)
+            password_valid = await sync_to_async(django_user.check_password)(password)
+
+            if not password_valid:
+                raise UnauthorizedError("Invalid email or password")
+
+        except Exception:
+            raise UnauthorizedError("Invalid email or password")
 
         # Create sessions
         access_duration = 60 if not remember_me else 720  # 1 hour vs 12 hours
