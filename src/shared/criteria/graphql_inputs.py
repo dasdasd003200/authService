@@ -34,7 +34,7 @@ class FilterInput:
     field: Optional[str] = strawberry.field(default=None, description="Field to filter on")
     operator: FilterOperatorInput = strawberry.field(description="Filter operator")
     value: Optional[str] = strawberry.field(default=None, description="Filter value")
-    nested_filters: Optional[List["FilterInput"]] = strawberry.field(default=None, description="Nested filters for AND/OR operations")
+    nested_filters: Optional[List["FilterInput"]] = strawberry.field(name="nestedFilters", default=None, description="Nested filters for AND/OR operations")
 
 
 @strawberry.input

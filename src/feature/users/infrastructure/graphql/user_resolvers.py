@@ -36,24 +36,24 @@ class UserResolvers:
         return self._service
 
     # ===== QUERIES =====
-    @strawberry.field
+    @strawberry.field(name="usersFind")
     async def users_find(self, input: UserFindInput) -> UserFindResponse:
         return await self.service.find(input)
 
-    @strawberry.field
+    @strawberry.field(name="userFindOne")
     async def user_find_one(self, input: UserFindOneInput) -> UserFindOneResponse:
         return await self.service.find_one(input)
 
     # ===== MUTATIONS =====
-    @strawberry.mutation
+    @strawberry.mutation(name="userCreate")
     async def user_create(self, input: UserCreateInput) -> UserCreateResponse:
         return await self.service.create(input, user_context={})
 
-    @strawberry.mutation
+    @strawberry.mutation(name="userUpdate")
     async def user_update(self, input: UserUpdateInput) -> UserUpdateResponse:
         return await self.service.update(input, user_context={})
 
-    @strawberry.mutation
+    @strawberry.mutation(name="userDelete")
     async def user_delete(self, user_id: str) -> UserDeleteResponse:
         return await self.service.delete(user_id, user_context={})
 
@@ -88,4 +88,3 @@ class UserMutations:
     async def user_delete(self, user_id: str) -> UserDeleteResponse:
         resolver = UserResolvers()
         return await resolver.user_delete(user_id)
-
