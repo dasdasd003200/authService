@@ -14,18 +14,20 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "config.apps.CoreConfig",
     "strawberry.django",
-    # APPS EXPLÍCITAS - Esta es la práctica correcta en Django
     "src.feature.users.infrastructure.web",
     "src.feature.sessions.infrastructure.web",
 ]
 
+# ===== MIDDLEWARE LIMPIO SIN PARCHES =====
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    # CSRF omitido intencionalmente para GraphQL API
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -63,7 +65,6 @@ DATABASES = {
     }
 }
 
-# ✅ DJANGO ESTÁNDAR: AUTH_USER_MODEL explícito
 AUTH_USER_MODEL = "users.UserModel"
 
 # Password validation
@@ -88,4 +89,35 @@ JWT_SECRET_KEY = config("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_LIFETIME = config("JWT_ACCESS_TOKEN_LIFETIME", default=60, cast=int)
 JWT_REFRESH_TOKEN_LIFETIME = config("JWT_REFRESH_TOKEN_LIFETIME", default=7, cast=int)
 
-print(f"AuthService - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
+# ===== CONFIGURACIÓN CORS PARA API =====
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "origin",
+    "user-agent",
+    "x-apollo-operation-name",
+    "x-apollo-operation-id",
+    "apollo-require-preflight",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "OPTIONS",
+]
+
+# ===== CONFIGURACIÓN PARA PRODUCCIÓN FUTURA =====
+if not DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = False
+    CORS_ALLOWED_ORIGINS = [
+        "https://yourdomain.com",
+        # Agregar dominios específicos en producción
+    ]
+
+print(f"🚀 AuthService - DEBUG: {DEBUG}, DB: {DATABASES['default']['NAME']}")
+
