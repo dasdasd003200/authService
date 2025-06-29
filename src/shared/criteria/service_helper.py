@@ -1,8 +1,9 @@
+# src/shared/criteria/service_helper.py
 from typing import List, Dict, Any, Optional
 from .input_converter import CriteriaInputConverter
 from .prepare import PrepareFind, PrepareFindOne
 from .base_criteria import Criteria, Filters, Orders, Filter, Order, FilterOperator, SortDirection
-from uuid import UUID
+from src.core.exceptions.base_exceptions import ValidationException
 
 
 class CriteriaServiceHelper:
@@ -14,99 +15,40 @@ class CriteriaServiceHelper:
         self.additional_field_mapping = additional_field_mapping or {}
 
     def build_find_prepare(self, input_obj) -> PrepareFind:
-        if hasattr(input_obj, "criteria") and input_obj.criteria:
+        """
+        Build PrepareFind from input - ONLY supports criteria approach
+        """
+        if not hasattr(input_obj, "criteria") or not input_obj.criteria:
+            # Provide default criteria with sensible defaults
+            criteria = self._build_default_find_criteria()
+        else:
             criteria = CriteriaInputConverter.from_graphql_input(input_obj.criteria)
-            return PrepareFind(criteria=criteria)
 
-        criteria = self._build_legacy_find_criteria(input_obj)
         return PrepareFind(criteria=criteria)
 
     def build_find_one_prepare(self, input_obj) -> PrepareFindOne:
-        # First try direct criteria (modern approach)
-        if hasattr(input_obj, "criteria") and input_obj.criteria:
-            criteria = CriteriaInputConverter.from_graphql_input(input_obj.criteria)
-            return PrepareFindOne(filters=criteria.filters)
+        """
+        Build PrepareFindOne from input - ONLY supports criteria approach
+        """
+        if not hasattr(input_obj, "criteria") or not input_obj.criteria:
+            raise ValidationException("Criteria is required for find operations. Please specify filters to search for a specific record.", error_code="CRITERIA_REQUIRED")
 
-        criteria = self._build_legacy_find_one_criteria(input_obj)
+        criteria = CriteriaInputConverter.from_graphql_input(input_obj.criteria)
         return PrepareFindOne(filters=criteria.filters)
 
-    # ===== INLINE LEGACY BUILDER (sin dependencia externa) =====
-
-    def _build_legacy_find_criteria(self, input_obj) -> Criteria:
+    def _build_default_find_criteria(self) -> Criteria:
+        """
+        Build sensible default criteria when none provided
+        """
         builder = Criteria.builder()
-        filters = []
 
-        status = getattr(input_obj, "status", None)
-        search_text = getattr(input_obj, "search_text", None)
-        page = getattr(input_obj, "page", 1)
-        page_size = getattr(input_obj, "page_size", 10)
-        order_by = getattr(input_obj, "order_by", None)
-
-        if status:
-            filters.append(Filter(field="status", operator=FilterOperator.EQ, value=status))
-
-        # ===== BOOLEAN FILTERS =====
-        for field in self.boolean_fields:
-            value = getattr(input_obj, field, None)
-            if value is not None:
-                filters.append(Filter(field=field, operator=FilterOperator.EQ, value=value))
-
-        # ===== STRING FILTERS =====
-        for field in self.string_fields:
-            value = getattr(input_obj, field, None)
-            if value:
-                filters.append(Filter(field=field, operator=FilterOperator.EQ, value=value))
-
-        # ===== TEXT SEARCH =====
-        if search_text and self.search_fields:
-            search_filters = []
-            for field in self.search_fields:
-                search_filters.append(Filter(field=field, operator=FilterOperator.ICONTAINS, value=search_text))
-
-            # Add OR filter for search
-            filters.append(Filter(field="", operator=FilterOperator.OR, value=None, nested_filters=search_filters))
-
-        # Set filters
-        if filters:
-            builder.set_filters(Filters(filters))
-
-        # ===== ORDERING =====
-        orders = []
-        if order_by:
-            for order_field in order_by:
-                if order_field.startswith("-"):
-                    orders.append(Order(field=order_field[1:], direction=SortDirection.DESC))
-                else:
-                    orders.append(Order(field=order_field, direction=SortDirection.ASC))
-        else:
-            # Default order by created_at DESC
-            orders.append(Order(field="created_at", direction=SortDirection.DESC))
-
+        # Default ordering by created_at DESC
+        orders = [Order(field="created_at", direction=SortDirection.DESC)]
         builder.set_orders(Orders(orders))
 
-        # ===== PAGINATION =====
-        offset = (page - 1) * page_size
-        builder.set_limit(page_size)
-        builder.set_offset(offset)
+        # Default pagination (first 10 records)
+        builder.set_limit(10)
+        builder.set_offset(0)
 
         return builder.build()
-
-    def _build_legacy_find_one_criteria(self, input_obj) -> Criteria:
-        filters = []
-
-        # ===== ID FILTER (most common) =====
-        entity_id = getattr(input_obj, f"{self.feature_name}_id", None)
-        if not entity_id:
-            entity_id = getattr(input_obj, "id", None)
-
-        if entity_id:
-            filters.append(Filter(field="id", operator=FilterOperator.EQ, value=UUID(entity_id)))
-
-        # ===== STRING FILTERS =====
-        for field in self.string_fields:
-            value = getattr(input_obj, field, None)
-            if value:
-                filters.append(Filter(field=field, operator=FilterOperator.EQ, value=value))
-
-        return Criteria(filters=Filters(filters))
 
