@@ -1,5 +1,5 @@
-# src/feature/users/domain/schemes/user_fields.py - CENTRALIZED FIELDS
-from typing import Dict, Any, List
+# src/feature/users/domain/schemes/user_fields.py - FINAL CLEAN VERSION
+from typing import Dict, Any
 from dataclasses import dataclass
 from src.core.domain.value_objects.email import Email
 from ..value_objects.user_status import UserStatus
@@ -7,68 +7,26 @@ from ..value_objects.user_status import UserStatus
 
 @dataclass
 class UserFields:
-    """CENTRALIZED field definitions for User entity"""
-
-    # BASE FIELDS from BaseEntity
-    BASE_FIELDS = ["id", "created_at", "updated_at"]
-
-    # USER-SPECIFIC FIELDS
-    USER_FIELDS = ["email", "first_name", "last_name", "status", "email_verified"]
-
-    # ALL ENTITY FIELDS
-    ALL_ENTITY_FIELDS = BASE_FIELDS + USER_FIELDS
-
-    # COMPUTED FIELDS (not stored in DB)
-    COMPUTED_FIELDS = ["full_name"]
-
-    # GRAPHQL RESPONSE FIELDS
-    GRAPHQL_FIELDS = ALL_ENTITY_FIELDS + COMPUTED_FIELDS
-
-    # MODEL EXTRA FIELDS (Django specific)
-    MODEL_EXTRA_FIELDS = ["is_active"]
-
-    # ALL MODEL FIELDS
-    ALL_MODEL_FIELDS = ALL_ENTITY_FIELDS + MODEL_EXTRA_FIELDS
+    """CENTRALIZED field definitions for User entity - MINIMAL"""
 
     @staticmethod
-    def extract_entity_data(entity) -> Dict[str, Any]:
-        """Extract all entity fields as dict"""
+    def entity_to_model_data(entity) -> Dict[str, Any]:
+        """Entity -> Django Model data (for saving)"""
         return {
             "id": entity.id,
-            "email": entity.email,
+            "email": str(entity.email),
             "first_name": entity.first_name,
             "last_name": entity.last_name,
-            "status": entity.status,
+            "status": entity.status.value,
             "email_verified": entity.email_verified,
             "created_at": entity.created_at,
             "updated_at": entity.updated_at,
+            "is_active": entity.status == UserStatus.ACTIVE,
         }
 
     @staticmethod
-    def extract_graphql_data(entity) -> Dict[str, Any]:
-        """Extract all GraphQL fields as dict"""
-        data = UserFields.extract_entity_data(entity)
-        data.update(
-            {
-                "full_name": entity.full_name,
-            }
-        )
-        return data
-
-    @staticmethod
-    def extract_model_data(entity) -> Dict[str, Any]:
-        """Extract all model fields as dict"""
-        data = UserFields.extract_entity_data(entity)
-        data.update(
-            {
-                "is_active": entity.status == UserStatus.ACTIVE,
-            }
-        )
-        return data
-
-    @staticmethod
-    def entity_constructor_args(model) -> Dict[str, Any]:
-        """Get args for User entity constructor"""
+    def model_to_entity_args(model) -> Dict[str, Any]:
+        """Django Model -> Entity constructor args (for loading)"""
         return {
             "id": model.id,
             "email": Email(model.email),
@@ -80,9 +38,10 @@ class UserFields:
             "updated_at": model.updated_at,
         }
 
+    # ===== INPUT CONVERTERS =====
     @staticmethod
     def create_user_args(input_data) -> Dict[str, Any]:
-        """Get args for create_user use case"""
+        """Convert CreateInput to use case args"""
         return {
             "email": input_data.email,
             "password": input_data.password,
@@ -93,7 +52,7 @@ class UserFields:
 
     @staticmethod
     def update_user_args(input_data) -> Dict[str, Any]:
-        """Get args for update_user use case"""
+        """Convert UpdateInput to use case args"""
         return {
             "first_name": input_data.first_name,
             "last_name": input_data.last_name,

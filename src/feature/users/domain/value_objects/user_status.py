@@ -1,6 +1,9 @@
+# src/feature/users/domain/value_objects/user_status.py
+import strawberry
 from enum import Enum
 
 
+@strawberry.enum
 class UserStatus(Enum):
     ACTIVE = "active"
     INACTIVE = "inactive"
@@ -16,3 +19,4 @@ class UserStatus(Enum):
             if status.value == value.lower():
                 return status
         raise ValueError(f"Status inválido: {value}")
+

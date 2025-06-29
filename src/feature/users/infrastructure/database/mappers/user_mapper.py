@@ -1,4 +1,4 @@
-# src/feature/users/infrastructure/database/mappers/user_mapper.py - CENTRALIZED
+# src/feature/users/infrastructure/database/mappers/user_mapper.py - FIXED
 from typing import Dict, Any
 
 from src.core.infrastructure.database.mappers.base_mapper import BaseEntityMapper
@@ -9,13 +9,11 @@ from src.feature.users.domain.schemes.user_fields import UserFields
 
 class UserEntityMapper(BaseEntityMapper[User, UserModel]):
     def model_to_entity(self, model: UserModel) -> User:
-        """Use centralized field mapping"""
-        # Get constructor args from centralized fields
-        args = UserFields.entity_constructor_args(model)
+        """Convert Django Model to Entity"""
+        args = UserFields.model_to_entity_args(model)
         return User(**args)
 
     def entity_to_model_data(self, user: User) -> Dict[str, Any]:
-        """Use centralized field mapping"""
-        # Extract model data using centralized fields
-        return UserFields.extract_model_data(user)
+        """Convert Entity to Django Model data"""
+        return UserFields.entity_to_model_data(user)
 
