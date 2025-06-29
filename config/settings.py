@@ -16,9 +16,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "config.apps.CoreConfig",
     "strawberry.django",
-    # ✅ APPS EXPLÍCITAS - Esta es la práctica correcta en Django
+    # APPS EXPLÍCITAS - Esta es la práctica correcta en Django
     "src.feature.users.infrastructure.web",
-    # "src.feature.authentication.infrastructure.web",  # Futuro
+    "src.feature.sessions.infrastructure.web",
 ]
 
 MIDDLEWARE = [
