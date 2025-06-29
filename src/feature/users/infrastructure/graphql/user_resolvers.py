@@ -1,14 +1,9 @@
-# src/feature/users/infrastructure/graphql/user_resolvers.py - CLEAN
 import strawberry
 from ...domain.inputs.create import UserCreateInput
 from ...domain.inputs.update import UserUpdateInput
 from ...domain.inputs.find import UserFindInput
 from ...domain.inputs.find_one import UserFindOneInput
-from ...domain.types.create import UserCreateResponse
-from ...domain.types.update import UserUpdateResponse
-from ...domain.types.delete import UserDeleteResponse
-from ...domain.types.find import UserFindResponse
-from ...domain.types.find_one import UserFindOneResponse
+from ...domain.types.standard_responses import UserCreateResponse, UserUpdateResponse, UserDeleteResponse, UserFindResponse, UserFindOneResponse
 
 from ...application.use_cases.user_use_cases import UserUseCases
 from ..database.repositories import DjangoUserRepository

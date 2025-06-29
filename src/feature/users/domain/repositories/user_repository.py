@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
-from typing import Optional, List
+from abc import abstractmethod
+from typing import Optional
 from uuid import UUID
 
 from src.core.domain.value_objects.email import Email
@@ -23,3 +23,4 @@ class UserRepository(BaseRepository[User]):
     @abstractmethod
     async def delete_by_id(self, user_id: UUID) -> bool:
         pass
+

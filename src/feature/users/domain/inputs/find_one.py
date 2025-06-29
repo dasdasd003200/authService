@@ -1,6 +1,4 @@
-# src/feature/users/domain/inputs/find_one.py
 import strawberry
-from typing import Optional
 from src.shared.criteria.graphql_inputs import CriteriaInput
 
 

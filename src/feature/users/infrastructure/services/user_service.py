@@ -1,24 +1,23 @@
 from typing import Dict, Any
 
+from src.core.infrastructure.web.strawberry.services.base_service import BaseService
+from src.core.infrastructure.web.strawberry.responses import FindData, FindOneData
 from src.shared.criteria.service_helper import CriteriaServiceHelper
 from ...application.use_cases.user_use_cases import UserUseCases
 from ...domain.inputs.create import UserCreateInput
 from ...domain.inputs.update import UserUpdateInput
 from ...domain.inputs.find import UserFindInput
 from ...domain.inputs.find_one import UserFindOneInput
-from ...domain.types.create import UserCreateResponse
-from ...domain.types.update import UserUpdateResponse
-from ...domain.types.delete import UserDeleteResponse
-from ...domain.types.find import UserFindResponse, UserFindData
-from ...domain.types.find_one import UserFindOneResponse, UserFindOneData
+from ...domain.types.standard_responses import UserCreateResponse, UserUpdateResponse, UserDeleteResponse, UserFindResponse, UserFindOneResponse
 from ...domain.schemes.user import UserGraphQLType
 from ...domain.schemes.user_fields import UserFields
 from src.core.exceptions.base_exceptions import BaseDomainException
 from src.core.infrastructure.web.strawberry.helpers.validators import validate_uuid
 
 
-class UserService:
+class UserService(BaseService):
     def __init__(self, user_use_cases: UserUseCases):
+        super().__init__("User")  # Nombre de entidad para mensajes
         self.user_use_cases = user_use_cases
         self.criteria_helper = CriteriaServiceHelper(feature_name="user", search_fields=["first_name", "last_name", "email"], boolean_fields=["email_verified"], string_fields=["email", "status"])
 
@@ -29,10 +28,12 @@ class UserService:
             users, total_count = await self.user_use_cases.find_users_with_criteria(prepare)
 
             user_graphql_list = UserGraphQLType.from_entities(users)
+            response_data = self.handle_success_find(user_graphql_list, total_count)
 
-            return UserFindResponse(success=True, data=UserFindData(users=user_graphql_list), total_count=total_count, message="Users retrieved successfully")
+            return UserFindResponse(success=response_data["success"], data=FindData(items=response_data["data"]), total_count=response_data["total_count"], message=response_data["message"])
         except BaseDomainException as e:
-            return UserFindResponse(success=False, data=UserFindData(users=[]), total_count=0, message=e.message, error_code=e.error_code)
+            error_data = self.handle_exception(e, [])
+            return UserFindResponse(success=error_data["success"], data=FindData(items=error_data["data"]), total_count=0, message=error_data["message"], error_code=error_data["error_code"])
 
     async def find_one(self, input: UserFindOneInput) -> UserFindOneResponse:
         try:
@@ -40,10 +41,12 @@ class UserService:
             user = await self.user_use_cases.find_user_one_with_criteria(prepare)
 
             user_graphql = UserGraphQLType.from_entity(user) if user else None
+            response_data = self.handle_success_find_one(user_graphql)
 
-            return UserFindOneResponse(success=True, data=UserFindOneData(user=user_graphql), message="User retrieved successfully" if user else "User not found")
+            return UserFindOneResponse(success=response_data["success"], data=FindOneData(item=response_data["data"]), message=response_data["message"])
         except BaseDomainException as e:
-            return UserFindOneResponse(success=False, data=UserFindOneData(user=None), message=e.message, error_code=e.error_code)
+            error_data = self.handle_exception(e, None)
+            return UserFindOneResponse(success=error_data["success"], data=FindOneData(item=error_data["data"]), message=error_data["message"], error_code=error_data["error_code"])
 
     # ===== MUTATIONS =====
     async def create(self, input: UserCreateInput, user_context: Dict[str, Any]) -> UserCreateResponse:
@@ -52,10 +55,12 @@ class UserService:
             user = await self.user_use_cases.create_user(**create_args)
 
             user_graphql = UserGraphQLType.from_entity(user)
+            response_data = self.handle_success_create(user_graphql)
 
-            return UserCreateResponse(success=True, data=user_graphql, message="User created successfully")
+            return UserCreateResponse(success=response_data["success"], data=response_data["data"], message=response_data["message"])
         except BaseDomainException as e:
-            return UserCreateResponse(success=False, data=None, message=e.message, error_code=e.error_code)
+            error_data = self.handle_exception(e, None)
+            return UserCreateResponse(success=error_data["success"], data=error_data["data"], message=error_data["message"], error_code=error_data["error_code"])
 
     async def update(self, input: UserUpdateInput, user_context: Dict[str, Any]) -> UserUpdateResponse:
         try:
@@ -65,16 +70,23 @@ class UserService:
             user = await self.user_use_cases.update_user(user_id=user_id, **update_args)
 
             user_graphql = UserGraphQLType.from_entity(user)
+            response_data = self.handle_success_update(user_graphql)
 
-            return UserUpdateResponse(success=True, data=user_graphql, message="User updated successfully")
+            return UserUpdateResponse(success=response_data["success"], data=response_data["data"], message=response_data["message"])
         except BaseDomainException as e:
-            return UserUpdateResponse(success=False, data=None, message=e.message, error_code=e.error_code)
+            error_data = self.handle_exception(e, None)
+            return UserUpdateResponse(success=error_data["success"], data=error_data["data"], message=error_data["message"], error_code=error_data["error_code"])
 
     async def delete(self, user_id: str, user_context: Dict[str, Any]) -> UserDeleteResponse:
         try:
             user_uuid = validate_uuid(user_id, "User ID")
             success = await self.user_use_cases.delete_user(user_uuid)
-            return UserDeleteResponse(success=success, message="User deleted successfully" if success else "Failed to delete user")
-        except BaseDomainException as e:
-            return UserDeleteResponse(success=False, message=e.message, error_code=e.error_code)
 
+            if success:
+                response_data = self.handle_success_delete()
+                return UserDeleteResponse(success=response_data["success"], message=response_data["message"], affected_count=response_data.get("affected_count"))
+            else:
+                return UserDeleteResponse(success=False, message="Failed to delete user", error_code="DELETE_FAILED")
+        except BaseDomainException as e:
+            error_data = self.handle_exception(e)
+            return UserDeleteResponse(success=error_data["success"], message=error_data["message"], error_code=error_data["error_code"])
