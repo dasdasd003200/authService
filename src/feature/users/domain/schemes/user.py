@@ -1,13 +1,14 @@
-# src/feature/users/domain/schemes/user.py - CENTRALIZED SCHEMA
+# src/feature/users/domain/schemes/user.py - UPDATED WITH CENTRALIZED FIELDS
 import strawberry
 from typing import Optional, Dict, Any
 from datetime import datetime
 from ..enums.status import UserStatus
+from .user_fields import UserFields
 
 
 @strawberry.type
 class UserGraphQLType:
-    """CENTRALIZED User schema - ALL field definitions here"""
+    """CENTRALIZED User schema using UserFields"""
 
     id: str = strawberry.field(description="Unique user identifier")
     email: str = strawberry.field(description="User email address")
@@ -21,7 +22,7 @@ class UserGraphQLType:
 
     @classmethod
     def from_entity(cls, user) -> "UserGraphQLType":
-        """Convert User entity to GraphQL type"""
+        """Convert User entity to GraphQL type using centralized fields"""
         from ..value_objects.user_status import UserStatus as DomainStatus
         from ..enums.status import UserStatus as GraphQLStatus
 
@@ -33,16 +34,19 @@ class UserGraphQLType:
             DomainStatus.PENDING_VERIFICATION: GraphQLStatus.PENDING_VERIFICATION,
         }
 
+        # Use centralized field extraction
+        data = UserFields.extract_graphql_data(user)
+
         return cls(
-            id=str(user.id),
-            email=str(user.email),
-            first_name=user.first_name,
-            last_name=user.last_name,
-            full_name=user.full_name,
-            status=status_map[user.status],
-            email_verified=user.email_verified,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
+            id=str(data["id"]),
+            email=str(data["email"]),
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            full_name=data["full_name"],
+            status=status_map[data["status"]],
+            email_verified=data["email_verified"],
+            created_at=data["created_at"],
+            updated_at=data["updated_at"],
         )
 
     @classmethod
@@ -64,10 +68,8 @@ class UserGraphQLType:
             "is_active": self.status == UserStatus.ACTIVE,
         }
 
-    # FIELD DEFINITIONS for reuse in mappers
-    ENTITY_FIELDS = ["id", "email", "first_name", "last_name", "status", "email_verified", "created_at", "updated_at"]
-
-    MODEL_FIELDS = ENTITY_FIELDS + ["is_active"]
-
-    GRAPHQL_FIELDS = ENTITY_FIELDS + ["full_name"]
+    # FIELD DEFINITIONS for backwards compatibility
+    ENTITY_FIELDS = UserFields.ALL_ENTITY_FIELDS
+    MODEL_FIELDS = UserFields.ALL_MODEL_FIELDS
+    GRAPHQL_FIELDS = UserFields.GRAPHQL_FIELDS
 

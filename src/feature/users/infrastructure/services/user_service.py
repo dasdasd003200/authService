@@ -1,4 +1,3 @@
-# src/feature/users/infrastructure/services/user_service.py - SIMPLIFIED
 from typing import Dict, Any
 
 from src.shared.criteria.service_helper import CriteriaServiceHelper
@@ -12,7 +11,8 @@ from ...domain.types.update import UserUpdateResponse
 from ...domain.types.delete import UserDeleteResponse
 from ...domain.types.find import UserFindResponse, UserFindData
 from ...domain.types.find_one import UserFindOneResponse, UserFindOneData
-from ...domain.schemes.user import UserGraphQLType  # CENTRALIZED
+from ...domain.schemes.user import UserGraphQLType
+from ...domain.schemes.user_fields import UserFields
 from src.core.exceptions.base_exceptions import BaseDomainException
 from src.core.infrastructure.web.strawberry.helpers.validators import validate_uuid
 
@@ -28,7 +28,6 @@ class UserService:
             prepare = self.criteria_helper.build_find_prepare(input)
             users, total_count = await self.user_use_cases.find_users_with_criteria(prepare)
 
-            # CENTRALIZED conversion
             user_graphql_list = UserGraphQLType.from_entities(users)
 
             return UserFindResponse(success=True, data=UserFindData(users=user_graphql_list), total_count=total_count, message="Users retrieved successfully")
@@ -40,7 +39,6 @@ class UserService:
             prepare = self.criteria_helper.build_find_one_prepare(input)
             user = await self.user_use_cases.find_user_one_with_criteria(prepare)
 
-            # CENTRALIZED conversion
             user_graphql = UserGraphQLType.from_entity(user) if user else None
 
             return UserFindOneResponse(success=True, data=UserFindOneData(user=user_graphql), message="User retrieved successfully" if user else "User not found")
@@ -50,9 +48,9 @@ class UserService:
     # ===== MUTATIONS =====
     async def create(self, input: UserCreateInput, user_context: Dict[str, Any]) -> UserCreateResponse:
         try:
-            user = await self.user_use_cases.create_user(email=input.email, password=input.password, first_name=input.first_name, last_name=input.last_name, email_verified=input.email_verified)
+            create_args = UserFields.create_user_args(input)
+            user = await self.user_use_cases.create_user(**create_args)
 
-            # CENTRALIZED conversion
             user_graphql = UserGraphQLType.from_entity(user)
 
             return UserCreateResponse(success=True, data=user_graphql, message="User created successfully")
@@ -62,9 +60,10 @@ class UserService:
     async def update(self, input: UserUpdateInput, user_context: Dict[str, Any]) -> UserUpdateResponse:
         try:
             user_id = validate_uuid(input.user_id, "User ID")
-            user = await self.user_use_cases.update_user(user_id=user_id, first_name=input.first_name, last_name=input.last_name)
 
-            # CENTRALIZED conversion
+            update_args = UserFields.update_user_args(input)
+            user = await self.user_use_cases.update_user(user_id=user_id, **update_args)
+
             user_graphql = UserGraphQLType.from_entity(user)
 
             return UserUpdateResponse(success=True, data=user_graphql, message="User updated successfully")
