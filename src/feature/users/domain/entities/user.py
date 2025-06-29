@@ -26,18 +26,6 @@ class User(BaseEntity):
         self.status = status
         self.email_verified = email_verified
 
-        self._validate()
-
-    def _validate(self):
-        if not self.first_name:
-            raise ValueError("First name is required")
-        if not self.last_name:
-            raise ValueError("Last name is required")
-        if len(self.first_name) > 50:
-            raise ValueError("First name too long")
-        if len(self.last_name) > 50:
-            raise ValueError("Last name too long")
-
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
@@ -52,4 +40,3 @@ class User(BaseEntity):
         if last_name:
             self.last_name = last_name.strip()
         self.update_timestamp()
-        self._validate()

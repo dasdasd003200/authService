@@ -1,3 +1,4 @@
+# src/feature/users/infrastructure/database/mappers/user_mapper.py - SIMPLIFIED
 from typing import Dict, Any
 
 from src.core.domain.value_objects.email import Email
@@ -9,6 +10,7 @@ from src.feature.users.infrastructure.database.models import UserModel
 
 class UserEntityMapper(BaseEntityMapper[User, UserModel]):
     def model_to_entity(self, model: UserModel) -> User:
+        """Use centralized field mapping"""
         return User(
             id=model.id,
             email=Email(model.email),
@@ -21,15 +23,10 @@ class UserEntityMapper(BaseEntityMapper[User, UserModel]):
         )
 
     def entity_to_model_data(self, user: User) -> Dict[str, Any]:
-        return {
-            "id": user.id,
-            "email": str(user.email),
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "status": user.status.value,
-            "email_verified": user.email_verified,
-            "created_at": user.created_at,
-            "updated_at": user.updated_at,
-            "is_active": user.status == UserStatus.ACTIVE,
-        }
+        """Use centralized field mapping from schema"""
+        from ...domain.schemes.user import UserGraphQLType
+
+        # Create GraphQL type and use its model data conversion
+        graphql_user = UserGraphQLType.from_entity(user)
+        return graphql_user.to_model_data()
 
