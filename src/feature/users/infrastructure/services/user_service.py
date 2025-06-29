@@ -1,3 +1,4 @@
+# src/feature/users/infrastructure/services/user_service.py
 from typing import Dict, Any
 
 from src.core.infrastructure.web.strawberry.services.base_service import BaseService
@@ -17,7 +18,7 @@ from src.core.infrastructure.web.strawberry.helpers.validators import validate_u
 
 class UserService(BaseService):
     def __init__(self, user_use_cases: UserUseCases):
-        super().__init__("User")  # Nombre de entidad para mensajes
+        super().__init__("User")
         self.user_use_cases = user_use_cases
         self.criteria_helper = CriteriaServiceHelper(feature_name="user", search_fields=["first_name", "last_name", "email"], boolean_fields=["email_verified"], string_fields=["email", "status"])
 
@@ -25,7 +26,8 @@ class UserService(BaseService):
     async def find(self, input: UserFindInput) -> UserFindResponse:
         try:
             prepare = self.criteria_helper.build_find_prepare(input)
-            users, total_count = await self.user_use_cases.find_users_with_criteria(prepare)
+            # CAMBIO: usar método heredado del core
+            users, total_count = await self.user_use_cases.find_with_criteria(prepare)
 
             user_graphql_list = UserGraphQLType.from_entities(users)
             response_data = self.handle_success_find(user_graphql_list, total_count)
@@ -38,7 +40,8 @@ class UserService(BaseService):
     async def find_one(self, input: UserFindOneInput) -> UserFindOneResponse:
         try:
             prepare = self.criteria_helper.build_find_one_prepare(input)
-            user = await self.user_use_cases.find_user_one_with_criteria(prepare)
+            # CAMBIO: usar método heredado del core
+            user = await self.user_use_cases.find_one_with_criteria(prepare)
 
             user_graphql = UserGraphQLType.from_entity(user) if user else None
             response_data = self.handle_success_find_one(user_graphql)
@@ -65,7 +68,6 @@ class UserService(BaseService):
     async def update(self, input: UserUpdateInput, user_context: Dict[str, Any]) -> UserUpdateResponse:
         try:
             user_id = validate_uuid(input.user_id, "User ID")
-
             update_args = UserFields.update_user_args(input)
             user = await self.user_use_cases.update_user(user_id=user_id, **update_args)
 
@@ -80,7 +82,8 @@ class UserService(BaseService):
     async def delete(self, user_id: str, user_context: Dict[str, Any]) -> UserDeleteResponse:
         try:
             user_uuid = validate_uuid(user_id, "User ID")
-            success = await self.user_use_cases.delete_user(user_uuid)
+            # CAMBIO: usar método heredado del core
+            success = await self.user_use_cases.delete_by_id(user_uuid)
 
             if success:
                 response_data = self.handle_success_delete()
@@ -90,3 +93,4 @@ class UserService(BaseService):
         except BaseDomainException as e:
             error_data = self.handle_exception(e)
             return UserDeleteResponse(success=error_data["success"], message=error_data["message"], error_code=error_data["error_code"])
+
