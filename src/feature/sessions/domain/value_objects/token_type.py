@@ -1,4 +1,3 @@
-# src/feature/sessions/domain/value_objects/token_type.py
 import strawberry
 from enum import Enum
 
@@ -17,4 +16,3 @@ class TokenType(Enum):
             if token_type.value == value.lower():
                 return token_type
         raise ValueError(f"Invalid token type: {value}")
-

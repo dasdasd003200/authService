@@ -15,9 +15,6 @@ class CriteriaServiceHelper:
         self.additional_field_mapping = additional_field_mapping or {}
 
     def build_find_prepare(self, input_obj) -> PrepareFind:
-        """
-        Build PrepareFind from input - ONLY supports criteria approach
-        """
         if not hasattr(input_obj, "criteria") or not input_obj.criteria:
             # Provide default criteria with sensible defaults
             criteria = self._build_default_find_criteria()
@@ -27,9 +24,6 @@ class CriteriaServiceHelper:
         return PrepareFind(criteria=criteria)
 
     def build_find_one_prepare(self, input_obj) -> PrepareFindOne:
-        """
-        Build PrepareFindOne from input - ONLY supports criteria approach
-        """
         if not hasattr(input_obj, "criteria") or not input_obj.criteria:
             raise ValidationException("Criteria is required for find operations. Please specify filters to search for a specific record.", error_code="CRITERIA_REQUIRED")
 
@@ -37,9 +31,6 @@ class CriteriaServiceHelper:
         return PrepareFindOne(filters=criteria.filters)
 
     def _build_default_find_criteria(self) -> Criteria:
-        """
-        Build sensible default criteria when none provided
-        """
         builder = Criteria.builder()
 
         # Default ordering by created_at DESC
@@ -51,4 +42,3 @@ class CriteriaServiceHelper:
         builder.set_offset(0)
 
         return builder.build()
-

@@ -1,4 +1,3 @@
-# src/feature/sessions/domain/schemes/session_fields.py
 from typing import Dict, Any
 from dataclasses import dataclass
 from ..value_objects.token_type import TokenType
@@ -7,11 +6,8 @@ from ..value_objects.session_status import SessionStatus
 
 @dataclass
 class SessionFields:
-    """Centralized field definitions for Session entity"""
-
     @staticmethod
     def entity_to_model_data(entity) -> Dict[str, Any]:
-        """Entity -> Django Model data (for saving)"""
         return {
             "id": entity.id,
             "user_id": entity.user_id,
@@ -27,7 +23,6 @@ class SessionFields:
 
     @staticmethod
     def model_to_entity_args(model) -> Dict[str, Any]:
-        """Django Model -> Entity constructor args (for loading)"""
         return {
             "id": model.id,
             "user_id": model.user_id,
@@ -44,7 +39,6 @@ class SessionFields:
     # ===== INPUT CONVERTERS =====
     @staticmethod
     def login_args(input_data) -> Dict[str, Any]:
-        """Convert LoginInput to use case args"""
         return {
             "email": input_data.email,
             "password": input_data.password,
@@ -54,16 +48,13 @@ class SessionFields:
 
     @staticmethod
     def refresh_args(input_data) -> Dict[str, Any]:
-        """Convert RefreshTokenInput to use case args"""
         return {
             "refresh_token": input_data.refresh_token,
         }
 
     @staticmethod
     def logout_args(input_data) -> Dict[str, Any]:
-        """Convert LogoutInput to use case args"""
         return {
             "session_id": input_data.session_id,
             "logout_all": input_data.logout_all,
         }
-

@@ -1,4 +1,3 @@
-# src/feature/sessions/domain/schemes/session.py
 import strawberry
 from datetime import datetime
 from typing import Optional
@@ -8,8 +7,6 @@ from ..value_objects.session_status import SessionStatus
 
 @strawberry.type
 class SessionGraphQLType:
-    """Session GraphQL schema with explicit camelCase naming"""
-
     id: str = strawberry.field(description="Unique session identifier")
     user_id: str = strawberry.field(name="userId", description="User identifier")
 
@@ -29,7 +26,6 @@ class SessionGraphQLType:
 
     @classmethod
     def from_entity(cls, session) -> "SessionGraphQLType":
-        """Convert Session entity to GraphQL type"""
         return cls(
             id=str(session.id),
             user_id=str(session.user_id),
@@ -47,22 +43,16 @@ class SessionGraphQLType:
 
     @classmethod
     def from_entities(cls, sessions) -> list["SessionGraphQLType"]:
-        """Convert list of Session entities"""
         return [cls.from_entity(session) for session in sessions]
 
 
 @strawberry.type
 class AuthResponse:
-    """Authentication response with tokens and user info"""
-
     access_token: str = strawberry.field(name="accessToken", description="JWT access token")
     refresh_token: str = strawberry.field(name="refreshToken", description="JWT refresh token")
     expires_in: int = strawberry.field(name="expiresIn", description="Access token expiration in seconds")
     token_type: str = strawberry.field(name="tokenType", default="Bearer", description="Token type")
 
-    # User info embedding (opcional)
     user_id: str = strawberry.field(name="userId", description="Authenticated user ID")
     user_email: str = strawberry.field(name="userEmail", description="Authenticated user email")
-
     session_id: str = strawberry.field(name="sessionId", description="Session identifier")
-

@@ -1,4 +1,3 @@
-# src/feature/sessions/infrastructure/services/jwt_service.py
 import jwt
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
@@ -11,17 +10,11 @@ from ...domain.value_objects.token_type import TokenType
 
 
 class JWTService:
-    """JWT token generation and validation service"""
-
     def __init__(self):
         self.secret_key = settings.JWT_SECRET_KEY
         self.algorithm = "HS256"
 
     def generate_token_pair(self, access_session: Session, refresh_session: Session, user_email: str) -> Dict[str, Any]:
-        """
-        Generate JWT token pair from sessions
-        Returns dict with access_token, refresh_token, expires_in, etc.
-        """
         if access_session.token_type != TokenType.ACCESS:
             raise ValidationException("Invalid access session type")
 
@@ -63,9 +56,6 @@ class JWTService:
         }
 
     def generate_access_token(self, session: Session, user_email: str) -> Dict[str, Any]:
-        """
-        Generate only access token from session
-        """
         if session.token_type != TokenType.ACCESS:
             raise ValidationException("Session must be ACCESS type")
 
@@ -91,10 +81,6 @@ class JWTService:
         }
 
     def decode_token(self, token: str) -> Dict[str, Any]:
-        """
-        Decode and validate JWT token
-        Raises UnauthorizedError if invalid
-        """
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             return payload
@@ -104,9 +90,6 @@ class JWTService:
             raise UnauthorizedError("Invalid token")
 
     def extract_session_id(self, token: str) -> UUID:
-        """
-        Extract session ID from JWT token
-        """
         payload = self.decode_token(token)
         session_id_str = payload.get("session_id")
 
@@ -119,9 +102,6 @@ class JWTService:
             raise UnauthorizedError("Invalid session ID in token")
 
     def extract_user_id(self, token: str) -> UUID:
-        """
-        Extract user ID from JWT token
-        """
         payload = self.decode_token(token)
         user_id_str = payload.get("user_id")
 
@@ -134,17 +114,11 @@ class JWTService:
             raise UnauthorizedError("Invalid user ID in token")
 
     def validate_token_type(self, token: str, expected_type: str) -> bool:
-        """
-        Validate that token has expected type (access/refresh)
-        """
         payload = self.decode_token(token)
         token_type = payload.get("token_type")
         return token_type == expected_type
 
     def is_token_expired(self, token: str) -> bool:
-        """
-        Check if token is expired without raising exception
-        """
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
             exp = payload.get("exp", 0)
@@ -153,4 +127,3 @@ class JWTService:
             return True
         except jwt.InvalidTokenError:
             return True
-

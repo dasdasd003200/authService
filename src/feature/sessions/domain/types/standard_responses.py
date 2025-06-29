@@ -18,8 +18,6 @@ SessionFindOneResponse = FindOneResponse[SessionGraphQLType]
 
 @strawberry.type
 class LoginResponse:
-    """Login operation response with auth tokens"""
-
     success: bool = strawberry.field(description="Operation success status")
     data: Optional[AuthResponse] = strawberry.field(default=None, description="Authentication data")
     message: Optional[str] = strawberry.field(default=None, description="Response message")
@@ -28,8 +26,6 @@ class LoginResponse:
 
 @strawberry.type
 class RefreshTokenResponse:
-    """Refresh token operation response"""
-
     success: bool = strawberry.field(description="Operation success status")
     data: Optional[AuthResponse] = strawberry.field(default=None, description="New authentication data")
     message: Optional[str] = strawberry.field(default=None, description="Response message")
@@ -38,10 +34,7 @@ class RefreshTokenResponse:
 
 @strawberry.type
 class LogoutResponse:
-    """Logout operation response"""
-
     success: bool = strawberry.field(description="Operation success status")
     message: Optional[str] = strawberry.field(default=None, description="Response message")
     error_code: Optional[str] = strawberry.field(default=None, description="Error code if failed")
     sessions_affected: Optional[int] = strawberry.field(default=None, description="Number of sessions that were logged out")
-

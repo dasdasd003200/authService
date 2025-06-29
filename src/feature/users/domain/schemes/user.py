@@ -1,4 +1,3 @@
-# src/feature/users/domain/schemes/user.py - FIXED NAMING
 import strawberry
 from datetime import datetime
 from ..value_objects.user_status import UserStatus
@@ -6,8 +5,6 @@ from ..value_objects.user_status import UserStatus
 
 @strawberry.type
 class UserGraphQLType:
-    """Clean User GraphQL schema with explicit camelCase naming"""
-
     id: str = strawberry.field(description="Unique user identifier")
     email: str = strawberry.field(description="User email address")
 
@@ -23,7 +20,6 @@ class UserGraphQLType:
 
     @classmethod
     def from_entity(cls, user) -> "UserGraphQLType":
-        """Simple entity to GraphQL conversion"""
         return cls(
             id=str(user.id),
             email=str(user.email),
@@ -38,6 +34,4 @@ class UserGraphQLType:
 
     @classmethod
     def from_entities(cls, users) -> list["UserGraphQLType"]:
-        """Convert list of entities"""
         return [cls.from_entity(user) for user in users]
-

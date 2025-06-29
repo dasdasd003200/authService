@@ -1,4 +1,3 @@
-# src/feature/sessions/application/use_cases/session_use_cases.py - IMPROVED
 from typing import Optional, Tuple
 from uuid import UUID
 from django.contrib.auth.hashers import check_password
@@ -19,14 +18,9 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         self.user_repository = user_repository
 
     async def authenticate_user(self, email: str, password: str, remember_me: bool = False, ip_address: Optional[str] = None, user_agent: Optional[str] = None, device_info: Optional[str] = None) -> Tuple[Session, Session]:  # (access_session, refresh_session)
-        """
-        Authenticate user and create sessions
-        Returns tuple of (access_session, refresh_session)
-        """
         if not email or not password:
             raise ValidationException("Email and password are required")
 
-        # Find user by email
         email_vo = Email(email)
         user = await self.user_repository.find_by_email(email_vo)
         if not user:
@@ -36,8 +30,6 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         if not user.is_active:
             raise UnauthorizedError("Account is not active")
 
-        # ✅ REAL PASSWORD VALIDATION
-        # Need to get Django model to check password
         from src.feature.users.infrastructure.database.models import UserModel
         from asgiref.sync import sync_to_async
 
@@ -68,9 +60,6 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         return access_session, refresh_session
 
     async def refresh_access_token(self, refresh_token_id: UUID) -> Session:
-        """
-        Create new access token using refresh token
-        """
         refresh_session = await self.session_repository.find_by_id(refresh_token_id)
         if not refresh_session:
             raise NotFoundError("Refresh token not found")
@@ -88,9 +77,6 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         return await self.session_repository.save(access_session)
 
     async def logout_session(self, session_id: UUID) -> bool:
-        """
-        Logout specific session
-        """
         session = await self.session_repository.find_by_id(session_id)
         if not session:
             raise NotFoundError(f"Session with ID {session_id} not found")
@@ -100,15 +86,9 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         return True
 
     async def logout_all_user_sessions(self, user_id: UUID) -> int:
-        """
-        Logout all sessions for a user
-        """
         return await self.session_repository.revoke_all_user_sessions(user_id)
 
     async def validate_session(self, session_id: UUID) -> Session:
-        """
-        Validate and return session if active
-        """
         session = await self.session_repository.find_by_id(session_id)
         if not session:
             raise NotFoundError("Session not found")
@@ -119,14 +99,7 @@ class SessionUseCases(BaseCrudUseCases[Session]):
         return session
 
     async def get_user_active_sessions(self, user_id: UUID) -> list[Session]:
-        """
-        Get all active sessions for a user
-        """
         return await self.session_repository.find_active_sessions_by_user_id(user_id)
 
     async def cleanup_expired_sessions(self) -> int:
-        """
-        Remove expired sessions (maintenance task)
-        """
         return await self.session_repository.cleanup_expired_sessions()
-

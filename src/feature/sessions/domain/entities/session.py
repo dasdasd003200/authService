@@ -1,4 +1,3 @@
-# src/feature/sessions/domain/entities/session.py
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from uuid import UUID
@@ -40,17 +39,14 @@ class Session(BaseEntity):
         return self.expires_at <= datetime.now(timezone.utc)
 
     def revoke(self):
-        """Revoke this session"""
         self.status = SessionStatus.REVOKED
         self.update_timestamp()
 
     def logout(self):
-        """Mark session as logged out"""
         self.status = SessionStatus.LOGGED_OUT
         self.update_timestamp()
 
     def extend_expiry(self, additional_minutes: int = 60):
-        """Extend session expiry time"""
         if self.is_active:
             self.expires_at = datetime.now(timezone.utc) + timedelta(minutes=additional_minutes)
             self.update_timestamp()
@@ -63,7 +59,6 @@ class Session(BaseEntity):
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
     ) -> "Session":
-        """Factory method for access token sessions"""
         expires_at = datetime.now(timezone.utc) + timedelta(minutes=duration_minutes)
         return cls(
             user_id=user_id,
@@ -81,7 +76,6 @@ class Session(BaseEntity):
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
     ) -> "Session":
-        """Factory method for refresh token sessions"""
         expires_at = datetime.now(timezone.utc) + timedelta(days=duration_days)
         return cls(
             user_id=user_id,
@@ -90,4 +84,3 @@ class Session(BaseEntity):
             ip_address=ip_address,
             user_agent=user_agent,
         )
-

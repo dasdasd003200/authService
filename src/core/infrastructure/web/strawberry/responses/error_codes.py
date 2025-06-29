@@ -2,8 +2,6 @@ from enum import Enum
 
 
 class StandardErrorCodes(Enum):
-    """Standard error codes for all operations"""
-
     # Validation errors
     VALIDATION_ERROR = "VALIDATION_ERROR"
     FIELD_REQUIRED = "FIELD_REQUIRED"
@@ -36,8 +34,6 @@ class StandardErrorCodes(Enum):
 
 
 class StandardMessages:
-    """Standard messages for common operations"""
-
     # Success messages
     CREATED_SUCCESS = "Item created successfully"
     UPDATED_SUCCESS = "Item updated successfully"
@@ -50,4 +46,3 @@ class StandardMessages:
     VALIDATION_ERROR = "Validation failed"
     UNAUTHORIZED_ERROR = "Unauthorized access"
     SYSTEM_ERROR = "System error occurred"
-

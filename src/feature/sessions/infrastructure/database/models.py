@@ -1,4 +1,3 @@
-# src/feature/sessions/infrastructure/database/models.py - FIXED
 import uuid
 from django.db import models
 from django.conf import settings
@@ -58,10 +57,8 @@ class SessionModel(models.Model):
 
     @property
     def user_id(self) -> uuid.UUID:
-        """Convenience property to get user_id as UUID"""
         return self.user.id if self.user else None
 
     def clean(self):
         super().clean()
         # Add any model-level validation here if needed
-

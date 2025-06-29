@@ -1,4 +1,3 @@
-# src/feature/sessions/infrastructure/web/apps.py - FIXED
 from django.apps import AppConfig
 
 
@@ -10,4 +9,3 @@ class SessionsConfig(AppConfig):
 
     def ready(self):
         print("🔐 Auth Sessions feature ready")
-

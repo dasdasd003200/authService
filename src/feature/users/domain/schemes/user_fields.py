@@ -1,4 +1,3 @@
-# src/feature/users/domain/schemes/user_fields.py - FINAL CLEAN VERSION
 from typing import Dict, Any
 from dataclasses import dataclass
 from src.core.domain.value_objects.email import Email
@@ -7,11 +6,8 @@ from ..value_objects.user_status import UserStatus
 
 @dataclass
 class UserFields:
-    """CENTRALIZED field definitions for User entity - MINIMAL"""
-
     @staticmethod
     def entity_to_model_data(entity) -> Dict[str, Any]:
-        """Entity -> Django Model data (for saving)"""
         return {
             "id": entity.id,
             "email": str(entity.email),
@@ -26,7 +22,6 @@ class UserFields:
 
     @staticmethod
     def model_to_entity_args(model) -> Dict[str, Any]:
-        """Django Model -> Entity constructor args (for loading)"""
         return {
             "id": model.id,
             "email": Email(model.email),
@@ -41,7 +36,6 @@ class UserFields:
     # ===== INPUT CONVERTERS =====
     @staticmethod
     def create_user_args(input_data) -> Dict[str, Any]:
-        """Convert CreateInput to use case args"""
         return {
             "email": input_data.email,
             "password": input_data.password,
@@ -52,7 +46,6 @@ class UserFields:
 
     @staticmethod
     def update_user_args(input_data) -> Dict[str, Any]:
-        """Convert UpdateInput to use case args"""
         return {
             "first_name": input_data.first_name,
             "last_name": input_data.last_name,

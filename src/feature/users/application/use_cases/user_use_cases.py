@@ -1,4 +1,3 @@
-# src/feature/users/application/use_cases/user_use_cases.py
 from typing import Optional
 from uuid import UUID
 
@@ -13,7 +12,7 @@ from src.core.exceptions.base_exceptions import ValidationException, NotFoundErr
 class UserUseCases(BaseCrudUseCases[User]):
     def __init__(self, user_repository: UserRepository):
         super().__init__(user_repository, "User")
-        self.user_repository = user_repository  # Para métodos específicos
+        self.user_repository = user_repository
 
     async def create_user(self, email: str, password: str, first_name: str, last_name: str, email_verified: bool = False) -> User:
         if not email or not password:
@@ -35,4 +34,3 @@ class UserUseCases(BaseCrudUseCases[User]):
 
         user.update_profile(first_name=first_name, last_name=last_name)
         return await self.repository.save(user)
-

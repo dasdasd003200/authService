@@ -1,4 +1,3 @@
-# src/feature/users/domain/value_objects/user_status.py
 import strawberry
 from enum import Enum
 
@@ -19,4 +18,3 @@ class UserStatus(Enum):
             if status.value == value.lower():
                 return status
         raise ValueError(f"Status inválido: {value}")
-

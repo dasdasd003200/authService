@@ -1,4 +1,3 @@
-# src/feature/sessions/infrastructure/services/auth_service.py
 from uuid import UUID
 from typing import Dict, Any, Optional
 
@@ -31,7 +30,6 @@ class AuthService(BaseService):
     # ===== AUTH OPERATIONS =====
 
     async def login(self, input: LoginInput, request_info: Dict[str, Any] = None) -> LoginResponse:
-        """Handle user login"""
         try:
             # Extract request info
             ip_address = request_info.get("ip_address") if request_info else None
@@ -61,7 +59,6 @@ class AuthService(BaseService):
             return LoginResponse(success=False, message=e.message, error_code=e.error_code)
 
     async def refresh_token(self, input: RefreshTokenInput) -> RefreshTokenResponse:
-        """Handle token refresh"""
         try:
             # Extract session ID from refresh token
             refresh_token = input.refresh_token
@@ -99,7 +96,6 @@ class AuthService(BaseService):
             return RefreshTokenResponse(success=False, message=e.message, error_code=e.error_code)
 
     async def logout(self, input: LogoutInput, user_context: Dict[str, Any]) -> LogoutResponse:
-        """Handle user logout"""
         try:
             logout_args = SessionFields.logout_args(input)
 
@@ -127,7 +123,6 @@ class AuthService(BaseService):
     # ===== CRUD OPERATIONS =====
 
     async def find(self, input: SessionFindInput) -> SessionFindResponse:
-        """Find sessions with criteria"""
         try:
             prepare = self.criteria_helper.build_find_prepare(input)
             sessions, total_count = await self.session_use_cases.find_with_criteria(prepare)
@@ -141,7 +136,6 @@ class AuthService(BaseService):
             return SessionFindResponse(success=error_data["success"], data=FindData(items=error_data["data"]), total_count=0, message=error_data["message"], error_code=error_data["error_code"])
 
     async def find_one(self, input: SessionFindOneInput) -> SessionFindOneResponse:
-        """Find one session with criteria"""
         try:
             prepare = self.criteria_helper.build_find_one_prepare(input)
             session = await self.session_use_cases.find_one_with_criteria(prepare)

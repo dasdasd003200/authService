@@ -1,4 +1,3 @@
-# src/feature/sessions/infrastructure/graphql/auth_resolvers.py - FIXED
 import strawberry
 from ...domain.inputs.login import LoginInput
 from ...domain.inputs.refresh import RefreshTokenInput
@@ -114,4 +113,3 @@ class AuthMutations:
     async def logout(self, input: LogoutInput) -> LogoutResponse:
         resolver = AuthResolvers()
         return await resolver.logout(input)
-

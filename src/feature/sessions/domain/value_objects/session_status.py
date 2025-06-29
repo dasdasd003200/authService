@@ -1,4 +1,3 @@
-# src/feature/sessions/domain/value_objects/session_status.py
 import strawberry
 from enum import Enum
 
